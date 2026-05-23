@@ -1506,6 +1506,291 @@ body.admin-mode .pf-filter-bar { top: 38px; }
 }
 
 /* ========================================
+   Project Detail Page
+   ======================================== */
+
+/* ── Back Link ─────────────────────── */
+
+.pj-back {
+  padding: 100px 0 24px;
+}
+
+.pj-back__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  font-weight: 400;
+  color: var(--color-text-muted);
+  letter-spacing: 0.06em;
+  transition: color 0.3s;
+}
+.pj-back__link:hover { color: var(--color-gold); }
+.pj-back__link svg { flex-shrink: 0; }
+
+/* ── Project Hero Image ────────────── */
+
+.pj-hero {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+.pj-hero img {
+  width: 100%;
+  height: 520px;
+  object-fit: cover;
+  display: block;
+}
+
+/* ── Project Info ──────────────────── */
+
+.pj-info {
+  padding: 64px 0 80px;
+}
+
+.pj-info__grid {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 80px;
+  align-items: start;
+}
+
+.pj-info__tag {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+  margin-bottom: 16px;
+}
+
+.pj-info__title {
+  font-family: var(--font-heading);
+  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+  font-weight: 400;
+  line-height: 1.15;
+  color: var(--color-white);
+  margin-bottom: 32px;
+}
+
+.pj-info__desc p {
+  font-size: 0.92rem;
+  line-height: 1.9;
+  color: var(--color-text-muted);
+  font-weight: 300;
+  margin-bottom: 20px;
+}
+.pj-info__desc p:last-child { margin-bottom: 0; }
+
+/* ── Project Sidebar ───────────────── */
+
+.pj-info__sidebar {
+  border-left: 1px solid var(--color-border);
+  padding-left: 40px;
+}
+
+.pj-info__spec {
+  padding: 20px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.pj-info__spec:first-child { padding-top: 0; }
+.pj-info__spec:last-child { border-bottom: none; }
+
+.pj-info__spec-label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+  margin-bottom: 6px;
+}
+
+.pj-info__spec-value {
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: var(--color-white);
+}
+
+/* ── Project Gallery ───────────────── */
+
+.pj-gallery {
+  padding: 0 0 var(--section-gap);
+  border-top: 1px solid var(--color-border);
+  padding-top: 80px;
+}
+
+.pj-gallery__title {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--color-gold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 32px;
+}
+
+.pj-gallery__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.pj-gallery__item img {
+  width: 100%;
+  height: 340px;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.5s ease;
+}
+
+.pj-gallery__item--large {
+  grid-column: span 2;
+}
+
+.pj-gallery__item--large img {
+  height: 480px;
+}
+
+.pj-gallery__item:hover img {
+  transform: scale(1.02);
+}
+
+.pj-gallery__item {
+  overflow: hidden;
+}
+
+/* ── Project Detail Responsive ─────── */
+
+@media (max-width: 1024px) {
+  .pj-info__grid { grid-template-columns: 1fr 240px; gap: 48px; }
+}
+
+@media (max-width: 768px) {
+  .pj-back { padding: 90px 0 20px; }
+  .pj-hero img { height: 320px; }
+  .pj-info__grid { grid-template-columns: 1fr; gap: 40px; }
+  .pj-info__sidebar {
+    border-left: none;
+    padding-left: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 32px;
+    border-top: 1px solid var(--color-border);
+    padding-top: 24px;
+  }
+  .pj-info__spec:first-child { padding-top: 20px; }
+  .pj-gallery__grid { grid-template-columns: 1fr; }
+  .pj-gallery__item--large { grid-column: span 1; }
+  .pj-gallery__item--large img { height: 280px; }
+  .pj-gallery__item img { height: 260px; }
+}
+
+@media (max-width: 480px) {
+  .pj-hero { padding: 0 20px; }
+  .pj-hero img { height: 240px; }
+  .pj-info { padding: 40px 0 60px; }
+  .pj-info__sidebar { grid-template-columns: 1fr; }
+  .pj-gallery { padding-top: 48px; }
+  .pj-gallery__item img { height: 220px; }
+  .pj-gallery__item--large img { height: 220px; }
+}
+
+/* ========================================
+   Add Project Modal
+   ======================================== */
+
+.add-project-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 10001;
+  align-items: flex-start;
+  justify-content: center;
+  background: rgba(42, 35, 24, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  overflow-y: auto;
+  padding: 80px 20px 40px;
+}
+
+.add-project-modal.active { display: flex; }
+
+.add-project-modal__box {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  padding: 36px;
+  width: 100%;
+  max-width: 580px;
+  position: relative;
+}
+
+.add-project-form__row {
+  margin-bottom: 20px;
+}
+
+.add-project-form__row label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: 8px;
+}
+
+.add-project-form__row input,
+.add-project-form__row select,
+.add-project-form__row textarea {
+  width: 100%;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  padding: 10px 14px;
+  color: var(--color-text);
+  font-size: 0.88rem;
+  font-weight: 300;
+  transition: border-color 0.3s;
+}
+
+.add-project-form__row input:focus,
+.add-project-form__row select:focus,
+.add-project-form__row textarea:focus {
+  outline: none;
+  border-color: var(--color-gold-dark);
+}
+
+.add-project-form__row textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.add-project-form__row--half {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.add-project-form__actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+/* Admin add button */
+.admin-toolbar__btn--add {
+  background: var(--color-gold);
+  color: #2A2318;
+  font-weight: 600;
+}
+.admin-toolbar__btn--add:hover {
+  background: var(--color-gold-light);
+}
+
+/* ========================================
    Contact Page
    ======================================== */
 
