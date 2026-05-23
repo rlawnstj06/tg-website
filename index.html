@@ -149,7 +149,7 @@
   <!-- Our Projects Banner -->
   <section class="projects-banner" id="portfolio">
     <div class="projects-banner__bg">
-      <img src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1600&q=80" alt="Interior design" loading="lazy">
+      <img src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1600&q=80" alt="Interior design" loading="lazy" data-editable-img="projects-banner-img">
     </div>
     <a href="portfolio.html" class="projects-banner__content">
       <h2 class="projects-banner__title" data-editable="projects-title">Our Projects</h2>
@@ -182,7 +182,7 @@
           </div>
         </div>
         <div class="contact__image-wrapper">
-          <img src="https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=800&q=80" alt="Architecture and construction" class="contact__image" loading="lazy">
+          <img src="https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=800&q=80" alt="Architecture and construction" class="contact__image" loading="lazy" data-editable-img="contact-img">
         </div>
       </div>
     </div>
@@ -220,6 +220,18 @@
       <input type="password" class="admin-modal__input" id="adminPassword" placeholder="Password">
       <p class="admin-modal__error" id="adminError"></p>
       <button class="admin-modal__submit" id="adminSubmit">Login</button>
+    </div>
+  </div>
+
+  <!-- Image Edit Popup (hidden until admin clicks image) -->
+  <div class="img-edit-popup" id="imgEditPopup">
+    <div class="img-edit-popup__box">
+      <h4 class="img-edit-popup__title">Change Image</h4>
+      <input type="text" class="img-edit-popup__input" id="imgEditUrl" placeholder="Paste image URL here...">
+      <div class="img-edit-popup__actions">
+        <button class="img-edit-popup__btn img-edit-popup__btn--apply" id="imgEditApply">Apply</button>
+        <button class="img-edit-popup__btn img-edit-popup__btn--cancel" id="imgEditCancel">Cancel</button>
+      </div>
     </div>
   </div>
 

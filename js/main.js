@@ -134,6 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── CMS / Admin System ─────────────────
   const ADMIN_PASSWORD = 'tggc2026';
   const STORAGE_KEY = 'tggc_cms_content';
+  const IMG_STORAGE_KEY = 'tggc_cms_images';
 
   const adminTrigger = document.getElementById('adminTrigger');
   const adminModal = document.getElementById('adminModal');
@@ -146,6 +147,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const adminExit = document.getElementById('adminExit');
 
   const editableElements = document.querySelectorAll('[data-editable]');
+  const editableImages = document.querySelectorAll('[data-editable-img]');
+
+  // Image edit popup elements
+  const imgEditPopup = document.getElementById('imgEditPopup');
+  const imgEditUrl = document.getElementById('imgEditUrl');
+  const imgEditApply = document.getElementById('imgEditApply');
+  const imgEditCancel = document.getElementById('imgEditCancel');
+  let currentEditingImg = null;
 
   function loadSavedContent() {
     try {
@@ -163,7 +172,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function loadSavedImages() {
+    try {
+      const saved = localStorage.getItem(IMG_STORAGE_KEY);
+      if (!saved) return;
+      const images = JSON.parse(saved);
+      editableImages.forEach(img => {
+        const key = img.dataset.editableImg;
+        if (images[key] !== undefined) {
+          img.src = images[key];
+        }
+      });
+    } catch (e) {
+      // silent fail
+    }
+  }
+
   function saveContent() {
+    // Save text
     let content = {};
     try {
       const existing = localStorage.getItem(STORAGE_KEY);
@@ -173,6 +199,65 @@ document.addEventListener('DOMContentLoaded', () => {
       content[el.dataset.editable] = el.innerHTML;
     });
     localStorage.setItem(STORAGE_KEY, JSON.stringify(content));
+
+    // Save images
+    let images = {};
+    try {
+      const existingImgs = localStorage.getItem(IMG_STORAGE_KEY);
+      if (existingImgs) images = JSON.parse(existingImgs);
+    } catch (e) {}
+    editableImages.forEach(img => {
+      images[img.dataset.editableImg] = img.src;
+    });
+    localStorage.setItem(IMG_STORAGE_KEY, JSON.stringify(images));
+  }
+
+  // Image edit click handler
+  function openImageEditor(img) {
+    currentEditingImg = img;
+    imgEditUrl.value = img.src;
+    imgEditPopup.classList.add('active');
+    setTimeout(() => {
+      imgEditUrl.select();
+      imgEditUrl.focus();
+    }, 100);
+  }
+
+  function closeImageEditor() {
+    imgEditPopup.classList.remove('active');
+    imgEditUrl.value = '';
+    currentEditingImg = null;
+  }
+
+  if (imgEditApply) {
+    imgEditApply.addEventListener('click', () => {
+      if (currentEditingImg && imgEditUrl.value.trim()) {
+        currentEditingImg.src = imgEditUrl.value.trim();
+        closeImageEditor();
+      }
+    });
+  }
+
+  if (imgEditCancel) {
+    imgEditCancel.addEventListener('click', closeImageEditor);
+  }
+
+  if (imgEditPopup) {
+    imgEditPopup.addEventListener('click', (e) => {
+      if (e.target === imgEditPopup) closeImageEditor();
+    });
+  }
+
+  if (imgEditUrl) {
+    imgEditUrl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        if (currentEditingImg && imgEditUrl.value.trim()) {
+          currentEditingImg.src = imgEditUrl.value.trim();
+          closeImageEditor();
+        }
+      }
+      if (e.key === 'Escape') closeImageEditor();
+    });
   }
 
   function enterAdminMode() {
@@ -186,15 +271,57 @@ document.addEventListener('DOMContentLoaded', () => {
       el.contentEditable = 'true';
       el.classList.add('editable');
     });
+
+    // Add edit overlay to images
+    editableImages.forEach(img => {
+      // Wrap image if not already wrapped
+      if (!img.parentElement.classList.contains('img-edit-wrapper')) {
+        const wrapper = img.parentElement;
+        wrapper.style.position = 'relative';
+      }
+
+      // Create overlay
+      const overlay = document.createElement('div');
+      overlay.className = 'img-edit-overlay';
+      overlay.innerHTML = '<div class="img-edit-overlay__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>';
+      img.parentElement.appendChild(overlay);
+      img.parentElement.classList.add('img-edit-wrapper');
+
+      // Click handler
+      const clickHandler = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openImageEditor(img);
+      };
+      img._adminClickHandler = clickHandler;
+      overlay._adminClickHandler = clickHandler;
+      img.addEventListener('click', clickHandler);
+      overlay.addEventListener('click', clickHandler);
+    });
   }
 
   function exitAdminMode() {
     document.body.classList.remove('admin-mode');
     adminToolbar.classList.remove('active');
+    closeImageEditor();
 
     editableElements.forEach(el => {
       el.contentEditable = 'false';
       el.classList.remove('editable');
+    });
+
+    // Remove image overlays
+    editableImages.forEach(img => {
+      const overlay = img.parentElement.querySelector('.img-edit-overlay');
+      if (overlay) {
+        overlay.removeEventListener('click', overlay._adminClickHandler);
+        overlay.remove();
+      }
+      if (img._adminClickHandler) {
+        img.removeEventListener('click', img._adminClickHandler);
+        delete img._adminClickHandler;
+      }
+      img.parentElement.classList.remove('img-edit-wrapper');
     });
   }
 
@@ -243,5 +370,6 @@ document.addEventListener('DOMContentLoaded', () => {
   adminExit.addEventListener('click', exitAdminMode);
 
   loadSavedContent();
+  loadSavedImages();
 
 });
