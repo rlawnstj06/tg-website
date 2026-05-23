@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TG General Contracting Ltd.</title>
+  <meta name="description" content="TG General Contracting Ltd. — Design Your Home, Build Your Business. Professional general contracting services in Vancouver, BC.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="nav" id="nav">
+    <div class="nav__inner">
+      <a href="#home" class="nav__logo">TG GC</a>
+      <div class="nav__right">
+        <a href="https://www.instagram.com/tggcltd/" target="_blank" rel="noopener" class="nav__social" aria-label="Instagram">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="2" y="2" width="20" height="20" rx="5"/>
+            <circle cx="12" cy="12" r="5"/>
+            <circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/>
+          </svg>
+        </a>
+        <a href="contact.html" class="nav__cta">Get in Touch</a>
+        <button class="nav__toggle" id="navToggle" aria-label="Toggle menu">
+          <span class="nav__toggle-line"></span>
+          <span class="nav__toggle-line"></span>
+          <span class="nav__toggle-line"></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Full-screen Menu Overlay -->
+  <div class="menu-overlay" id="menuOverlay">
+    <div class="menu-overlay__content">
+      <ul class="menu-overlay__list">
+        <li><a href="#home" class="menu-overlay__link" data-nav>Home</a></li>
+        <li><a href="#about" class="menu-overlay__link" data-nav>About</a></li>
+        <li><a href="#services" class="menu-overlay__link" data-nav>Services</a></li>
+        <li><a href="portfolio.html" class="menu-overlay__link" data-nav>Portfolio</a></li>
+        <li><a href="contact.html" class="menu-overlay__link" data-nav>Contact</a></li>
+      </ul>
+      <div class="menu-overlay__footer">
+        <p>Vancouver, BC, Canada</p>
+        <p><a href="tel:+12502711119">(250) 271-1119</a></p>
+        <p><a href="mailto:INFO@TGGCLTD.COM">INFO@TGGCLTD.COM</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hero Section -->
+  <section class="hero" id="home">
+    <div class="hero__background"></div>
+    <div class="hero__content">
+      <div class="hero__logo">
+        <img src="images/logo.png" alt="TG General Contracting Ltd." width="180">
+      </div>
+      <h1 class="hero__title" data-editable="hero-title">TG General Contracting Ltd.</h1>
+      <div class="hero__divider"></div>
+      <p class="hero__tagline" data-editable="hero-tagline">Design Your Home, Build Your Business</p>
+    </div>
+  </section>
+
+  <!-- About Section -->
+  <section class="section about" id="about">
+    <div class="container">
+      <div class="about__top">
+        <span class="section__label">About Us</span>
+        <h2 class="section__title" data-editable="about-title">Building Excellence<br>Since Day One</h2>
+      </div>
+      <div class="about__grid">
+        <div class="about__story">
+          <p class="about__lead" data-editable="about-lead">We are a full-service general contractor based in Vancouver, BC, specializing in both residential and commercial projects.</p>
+          <div class="about__columns">
+            <p class="about__text" data-editable="about-text-1">Our team brings together decades of combined experience in construction, design, and project management. We believe every project deserves the same level of dedication, precision, and attention to detail.</p>
+            <p class="about__text" data-editable="about-text-2">At TG GC, we don't just build structures. We build lasting relationships with our clients through transparent communication, reliable timelines, and quality that speaks for itself.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Team -->
+      <div class="team">
+        <div class="team__label">
+          <span class="section__label">Our Team</span>
+        </div>
+        <div class="team__grid">
+          <div class="team__member">
+            <div class="team__photo"><span>BL</span></div>
+            <h4 class="team__name" data-editable="team-1-name">Ben Lee</h4>
+            <p class="team__role" data-editable="team-1-role">Founder</p>
+          </div>
+          <div class="team__member">
+            <div class="team__photo"><span>SP</span></div>
+            <h4 class="team__name" data-editable="team-2-name">Stanley Park</h4>
+            <p class="team__role" data-editable="team-2-role">Project Manager</p>
+          </div>
+          <div class="team__member">
+            <div class="team__photo"><span>RP</span></div>
+            <h4 class="team__name" data-editable="team-3-name">Reese Platt</h4>
+            <p class="team__role" data-editable="team-3-role">General Contractor</p>
+          </div>
+          <div class="team__member">
+            <div class="team__photo"><span>JK</span></div>
+            <h4 class="team__name" data-editable="team-4-name">Jamie Kokot</h4>
+            <p class="team__role" data-editable="team-4-role">Construction Engineer</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services Section -->
+  <section class="section services" id="services">
+    <div class="container">
+      <div class="services__header">
+        <div class="services__header-left">
+          <span class="section__label">Services</span>
+          <h2 class="section__title" data-editable="services-title">What We Do</h2>
+        </div>
+        <p class="services__intro" data-editable="services-intro">From initial inspection and design through to final cleanup and ongoing maintenance, we handle every phase of your project with expertise and professionalism.</p>
+      </div>
+      <div class="services__list">
+        <div class="services__item"><span class="services__number">01</span><h3 class="services__name" data-editable="svc-1">Inspection</h3><p class="services__desc" data-editable="svc-1-d">Thorough site assessment and feasibility analysis to establish project scope and requirements.</p></div>
+        <div class="services__item"><span class="services__number">02</span><h3 class="services__name" data-editable="svc-2">Design</h3><p class="services__desc" data-editable="svc-2-d">Custom architectural and interior design solutions tailored to your vision and functional needs.</p></div>
+        <div class="services__item"><span class="services__number">03</span><h3 class="services__name" data-editable="svc-3">Permits</h3><p class="services__desc" data-editable="svc-3-d">Complete permit acquisition and regulatory compliance management for all project types.</p></div>
+        <div class="services__item"><span class="services__number">04</span><h3 class="services__name" data-editable="svc-4">Framing</h3><p class="services__desc" data-editable="svc-4-d">Precision structural framing for new builds, additions, and renovations.</p></div>
+        <div class="services__item"><span class="services__number">05</span><h3 class="services__name" data-editable="svc-5">Plumbing</h3><p class="services__desc" data-editable="svc-5-d">Full plumbing services including installation, repair, and system upgrades.</p></div>
+        <div class="services__item"><span class="services__number">06</span><h3 class="services__name" data-editable="svc-6">Electrical</h3><p class="services__desc" data-editable="svc-6-d">Licensed electrical work from wiring and panel upgrades to lighting design.</p></div>
+        <div class="services__item"><span class="services__number">07</span><h3 class="services__name" data-editable="svc-7">Flooring</h3><p class="services__desc" data-editable="svc-7-d">Hardwood, laminate, vinyl, and engineered flooring installation with expert craftsmanship.</p></div>
+        <div class="services__item"><span class="services__number">08</span><h3 class="services__name" data-editable="svc-8">Tile</h3><p class="services__desc" data-editable="svc-8-d">Custom tile work for kitchens, bathrooms, backsplashes, and feature walls.</p></div>
+        <div class="services__item"><span class="services__number">09</span><h3 class="services__name" data-editable="svc-9">Drywall</h3><p class="services__desc" data-editable="svc-9-d">Professional drywall installation, taping, and finishing for seamless interior surfaces.</p></div>
+        <div class="services__item"><span class="services__number">10</span><h3 class="services__name" data-editable="svc-10">Millwork</h3><p class="services__desc" data-editable="svc-10-d">Custom millwork including trim, moldings, built-ins, and architectural details.</p></div>
+        <div class="services__item"><span class="services__number">11</span><h3 class="services__name" data-editable="svc-11">Cabinetry</h3><p class="services__desc" data-editable="svc-11-d">Custom and semi-custom cabinet design, fabrication, and installation.</p></div>
+        <div class="services__item"><span class="services__number">12</span><h3 class="services__name" data-editable="svc-12">Painting</h3><p class="services__desc" data-editable="svc-12-d">Interior and exterior painting with meticulous preparation and premium finishes.</p></div>
+        <div class="services__item"><span class="services__number">13</span><h3 class="services__name" data-editable="svc-13">Concrete</h3><p class="services__desc" data-editable="svc-13-d">Foundations, slabs, driveways, and decorative concrete work with lasting durability.</p></div>
+        <div class="services__item"><span class="services__number">14</span><h3 class="services__name" data-editable="svc-14">Deck</h3><p class="services__desc" data-editable="svc-14-d">Custom deck design and construction using premium materials for outdoor living.</p></div>
+        <div class="services__item"><span class="services__number">15</span><h3 class="services__name" data-editable="svc-15">Exterior</h3><p class="services__desc" data-editable="svc-15-d">Siding, cladding, roofing, and exterior envelope solutions for lasting protection.</p></div>
+        <div class="services__item"><span class="services__number">16</span><h3 class="services__name" data-editable="svc-16">Glass</h3><p class="services__desc" data-editable="svc-16-d">Window installation, glass partitions, shower enclosures, and specialty glazing.</p></div>
+        <div class="services__item"><span class="services__number">17</span><h3 class="services__name" data-editable="svc-17">Cleanup</h3><p class="services__desc" data-editable="svc-17-d">Thorough post-construction cleaning and debris removal for a move-in ready finish.</p></div>
+        <div class="services__item"><span class="services__number">18</span><h3 class="services__name" data-editable="svc-18">Maintenance</h3><p class="services__desc" data-editable="svc-18-d">Ongoing maintenance programs to protect and preserve your investment long-term.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Our Projects Banner -->
+  <section class="projects-banner" id="portfolio">
+    <div class="projects-banner__bg">
+      <img src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1600&q=80" alt="Interior design" loading="lazy">
+    </div>
+    <a href="portfolio.html" class="projects-banner__content">
+      <h2 class="projects-banner__title" data-editable="projects-title">Our Projects</h2>
+      <span class="projects-banner__btn">Browse</span>
+    </a>
+  </section>
+
+  <!-- Contact Section -->
+  <section class="section contact" id="contact">
+    <div class="container">
+      <div class="contact__grid">
+        <div class="contact__info">
+          <span class="section__label">Contact Us</span>
+          <h2 class="section__title" data-editable="contact-title">Ready to Build<br>Your Vision?</h2>
+          <p class="contact__text" data-editable="contact-text">It all begins with an idea. Whether you're planning a renovation, a new build, or a commercial project, we'd love to hear from you.</p>
+          <a href="contact.html" class="hero__cta contact__cta-btn">Get in Touch</a>
+          <div class="contact__details">
+            <div class="contact__detail">
+              <span class="contact__detail-label">Location</span>
+              <span class="contact__detail-value" data-editable="contact-location">Vancouver, BC, Canada</span>
+            </div>
+            <div class="contact__detail">
+              <span class="contact__detail-label">Phone</span>
+              <a href="tel:+12502711119" class="contact__detail-value">(250) 271-1119</a>
+            </div>
+            <div class="contact__detail">
+              <span class="contact__detail-label">Email</span>
+              <a href="mailto:INFO@TGGCLTD.COM" class="contact__detail-value">INFO@TGGCLTD.COM</a>
+            </div>
+          </div>
+        </div>
+        <div class="contact__image-wrapper">
+          <img src="https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=800&q=80" alt="Architecture and construction" class="contact__image" loading="lazy">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__inner">
+        <div class="footer__brand">
+          <span class="footer__logo">TG GC</span>
+          <p class="footer__tagline">Design Your Home, Build Your Business</p>
+        </div>
+        <div class="footer__links">
+          <a href="#home">Home</a>
+          <a href="#about">About</a>
+          <a href="#services">Services</a>
+          <a href="portfolio.html">Portfolio</a>
+          <a href="contact.html">Contact</a>
+        </div>
+        <div class="footer__bottom">
+          <p>&copy; 2026 TG General Contracting Ltd. All rights reserved.</p>
+          <button class="admin-trigger" id="adminTrigger">Are you admin?</button>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Admin Login Modal -->
+  <div class="admin-modal" id="adminModal">
+    <div class="admin-modal__box">
+      <button class="admin-modal__close" id="adminModalClose">&times;</button>
+      <h3 class="admin-modal__title">Admin Login</h3>
+      <p class="admin-modal__desc">Enter password to edit website content.</p>
+      <input type="password" class="admin-modal__input" id="adminPassword" placeholder="Password">
+      <p class="admin-modal__error" id="adminError"></p>
+      <button class="admin-modal__submit" id="adminSubmit">Login</button>
+    </div>
+  </div>
+
+  <!-- Admin Toolbar (hidden until logged in) -->
+  <div class="admin-toolbar" id="adminToolbar">
+    <span class="admin-toolbar__status">Editing Mode</span>
+    <button class="admin-toolbar__btn admin-toolbar__btn--save" id="adminSave">Save Changes</button>
+    <button class="admin-toolbar__btn admin-toolbar__btn--exit" id="adminExit">Exit</button>
+  </div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

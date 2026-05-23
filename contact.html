@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Get in Touch — TG General Contracting Ltd.</title>
+  <meta name="description" content="Contact TG General Contracting Ltd. for a free consultation on your next residential or commercial project in Vancouver, BC.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="nav nav--scrolled nav--portfolio" id="nav">
+    <div class="nav__inner">
+      <a href="index.html" class="nav__logo">TG GC</a>
+      <div class="nav__right">
+        <a href="https://www.instagram.com/tggcltd/" target="_blank" rel="noopener" class="nav__social" aria-label="Instagram">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="2" y="2" width="20" height="20" rx="5"/>
+            <circle cx="12" cy="12" r="5"/>
+            <circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/>
+          </svg>
+        </a>
+        <a href="portfolio.html" class="nav__cta">View Our Work</a>
+        <button class="nav__toggle" id="navToggle" aria-label="Toggle menu">
+          <span class="nav__toggle-line"></span>
+          <span class="nav__toggle-line"></span>
+          <span class="nav__toggle-line"></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Full-screen Menu Overlay -->
+  <div class="menu-overlay" id="menuOverlay">
+    <div class="menu-overlay__content">
+      <ul class="menu-overlay__list">
+        <li><a href="index.html" class="menu-overlay__link" data-nav>Home</a></li>
+        <li><a href="index.html#about" class="menu-overlay__link" data-nav>About</a></li>
+        <li><a href="index.html#services" class="menu-overlay__link" data-nav>Services</a></li>
+        <li><a href="portfolio.html" class="menu-overlay__link" data-nav>Portfolio</a></li>
+        <li><a href="contact.html" class="menu-overlay__link menu-overlay__link--active" data-nav>Contact</a></li>
+      </ul>
+      <div class="menu-overlay__footer">
+        <p>Vancouver, BC, Canada</p>
+        <p><a href="tel:+12502711119">(250) 271-1119</a></p>
+        <p><a href="mailto:INFO@TGGCLTD.COM">INFO@TGGCLTD.COM</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contact Hero -->
+  <section class="ct-hero">
+    <div class="ct-hero__background"></div>
+    <div class="container">
+      <div class="ct-hero__content">
+        <span class="section__label" data-editable="ct-label">Contact</span>
+        <h1 class="ct-hero__title" data-editable="ct-hero-title">Get in Touch</h1>
+        <p class="ct-hero__desc" data-editable="ct-hero-desc">It all begins with a conversation. Whether you're planning a renovation, a new build, or a commercial project, we'd love to hear about your vision.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Content -->
+  <section class="ct-main">
+    <div class="container">
+      <div class="ct-grid">
+
+        <!-- Left: Info -->
+        <div class="ct-info">
+          <div class="ct-info__block">
+            <h3 class="ct-info__heading">Visit Us</h3>
+            <p class="ct-info__text" data-editable="ct-address">Vancouver, BC, Canada</p>
+          </div>
+          <div class="ct-info__block">
+            <h3 class="ct-info__heading">Call Us</h3>
+            <a href="tel:+12502711119" class="ct-info__link">(250) 271-1119</a>
+          </div>
+          <div class="ct-info__block">
+            <h3 class="ct-info__heading">Email Us</h3>
+            <a href="mailto:INFO@TGGCLTD.COM" class="ct-info__link">INFO@TGGCLTD.COM</a>
+          </div>
+          <div class="ct-info__block">
+            <h3 class="ct-info__heading">Hours</h3>
+            <p class="ct-info__text" data-editable="ct-hours-1">Monday – Friday: 8:00 AM – 6:00 PM</p>
+            <p class="ct-info__text" data-editable="ct-hours-2">Saturday: 9:00 AM – 3:00 PM</p>
+            <p class="ct-info__text ct-info__text--dim" data-editable="ct-hours-3">Sunday: Closed</p>
+          </div>
+          <div class="ct-info__block">
+            <h3 class="ct-info__heading">Follow Us</h3>
+            <a href="https://www.instagram.com/tggcltd/" target="_blank" rel="noopener" class="ct-info__social">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
+              <span>@tggcltd</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Right: Form -->
+        <div class="ct-form-wrapper">
+          <h3 class="ct-form-title" data-editable="ct-form-title">Request a Free Quote</h3>
+          <p class="ct-form-desc" data-editable="ct-form-desc">Fill out the form below and we'll get back to you within 24 hours.</p>
+          <form class="contact__form" id="quoteForm">
+            <div class="form__group"><label for="firstName" class="form__label">First Name <span class="form__required">*</span></label><input type="text" id="firstName" name="firstName" class="form__input" required></div>
+            <div class="form__group"><label for="lastName" class="form__label">Last Name <span class="form__required">*</span></label><input type="text" id="lastName" name="lastName" class="form__input" required></div>
+            <div class="form__group form__group--full"><label for="email" class="form__label">Email <span class="form__required">*</span></label><input type="email" id="email" name="email" class="form__input" required></div>
+            <div class="form__group form__group--full form__group--checkbox"><label class="form__checkbox-label"><input type="checkbox" id="newsletter" name="newsletter" class="form__checkbox"><span class="form__checkbox-custom"></span><span>Sign up for news and updates</span></label></div>
+            <div class="form__group form__group--full"><label for="phone" class="form__label">Phone <span class="form__required">*</span></label><input type="tel" id="phone" name="phone" class="form__input" required></div>
+            <div class="form__section-title">Project Location</div>
+            <div class="form__group form__group--full"><label for="country" class="form__label">Country</label><select id="country" name="country" class="form__input form__select"><option value="Canada" selected>Canada</option><option value="United States">United States</option></select></div>
+            <div class="form__group form__group--full"><label for="address1" class="form__label">Address Line 1 <span class="form__required">*</span></label><input type="text" id="address1" name="address1" class="form__input" required></div>
+            <div class="form__group form__group--full"><label for="address2" class="form__label">Address Line 2</label><input type="text" id="address2" name="address2" class="form__input"></div>
+            <div class="form__group"><label for="city" class="form__label">City <span class="form__required">*</span></label><input type="text" id="city" name="city" class="form__input" required></div>
+            <div class="form__group"><label for="state" class="form__label">Province / State <span class="form__required">*</span></label><input type="text" id="state" name="state" class="form__input" required></div>
+            <div class="form__group form__group--full"><label for="zip" class="form__label">Postal / ZIP Code <span class="form__required">*</span></label><input type="text" id="zip" name="zip" class="form__input" required></div>
+            <div class="form__section-title">What type of project are you interested in? (Select all that apply)</div>
+            <div class="form__group form__group--full form__group--checkboxes">
+              <label class="form__checkbox-label"><input type="checkbox" name="projectType" value="new-home" class="form__checkbox"><span class="form__checkbox-custom"></span><span>New Home Build</span></label>
+              <label class="form__checkbox-label"><input type="checkbox" name="projectType" value="renovation" class="form__checkbox"><span class="form__checkbox-custom"></span><span>Renovation (kitchen, bathroom, whole home)</span></label>
+              <label class="form__checkbox-label"><input type="checkbox" name="projectType" value="custom-addition" class="form__checkbox"><span class="form__checkbox-custom"></span><span>Custom Addition (e.g., second story, new wing)</span></label>
+              <label class="form__checkbox-label"><input type="checkbox" name="projectType" value="outdoor-space" class="form__checkbox"><span class="form__checkbox-custom"></span><span>Outdoor Space (e.g., deck, patio, outdoor kitchen)</span></label>
+              <label class="form__checkbox-label"><input type="checkbox" name="projectType" value="commercial" class="form__checkbox"><span class="form__checkbox-custom"></span><span>Commercial Project</span></label>
+              <label class="form__checkbox-label"><input type="checkbox" name="projectType" value="green-building" class="form__checkbox"><span class="form__checkbox-custom"></span><span>Green Building / Sustainable Project</span></label>
+            </div>
+            <div class="form__group form__group--full"><label for="budget" class="form__label">What is your budget?</label><div class="form__input-prefix"><span class="form__prefix">$</span><input type="text" id="budget" name="budget" class="form__input form__input--prefixed"></div></div>
+            <div class="form__group form__group--full"><label for="startDate" class="form__label">Desired start date</label><select id="startDate" name="startDate" class="form__input form__select"><option value="" disabled selected>Select an option</option><option value="asap">As soon as possible</option><option value="1-3months">1 - 3 months</option><option value="3-6months">3 - 6 months</option><option value="6-12months">6 - 12 months</option><option value="12months+">12+ months</option><option value="flexible">Flexible / Not sure yet</option></select></div>
+            <div class="form__group form__group--full"><label for="message" class="form__label">Is there anything else you'd like us to know?</label><textarea id="message" name="message" class="form__input form__textarea" rows="5"></textarea></div>
+            <button type="submit" class="form__submit">Submit Request</button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__inner">
+        <div class="footer__brand">
+          <span class="footer__logo">TG GC</span>
+          <p class="footer__tagline">Design Your Home, Build Your Business</p>
+        </div>
+        <div class="footer__links">
+          <a href="index.html">Home</a>
+          <a href="index.html#about">About</a>
+          <a href="index.html#services">Services</a>
+          <a href="portfolio.html">Portfolio</a>
+          <a href="contact.html">Contact</a>
+        </div>
+        <div class="footer__bottom">
+          <p>&copy; 2026 TG General Contracting Ltd. All rights reserved.</p>
+          <button class="admin-trigger" id="adminTrigger">Are you admin?</button>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Admin Login Modal -->
+  <div class="admin-modal" id="adminModal">
+    <div class="admin-modal__box">
+      <button class="admin-modal__close" id="adminModalClose">&times;</button>
+      <h3 class="admin-modal__title">Admin Login</h3>
+      <p class="admin-modal__desc">Enter password to edit website content.</p>
+      <input type="password" class="admin-modal__input" id="adminPassword" placeholder="Password">
+      <p class="admin-modal__error" id="adminError"></p>
+      <button class="admin-modal__submit" id="adminSubmit">Login</button>
+    </div>
+  </div>
+
+  <!-- Admin Toolbar -->
+  <div class="admin-toolbar" id="adminToolbar">
+    <span class="admin-toolbar__status">Editing Mode</span>
+    <button class="admin-toolbar__btn admin-toolbar__btn--save" id="adminSave">Save Changes</button>
+    <button class="admin-toolbar__btn admin-toolbar__btn--exit" id="adminExit">Exit</button>
+  </div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
