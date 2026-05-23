@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // ── Quote Form ─────────────────────────
+  // ── Quote Form (Formspree) ──────────────
   const quoteForm = document.getElementById('quoteForm');
 
   if (quoteForm) {
@@ -104,14 +104,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const submitBtn = quoteForm.querySelector('.form__submit');
       const originalText = submitBtn.textContent;
-      submitBtn.textContent = 'Thank You!';
+      submitBtn.textContent = 'Sending...';
       submitBtn.style.pointerEvents = 'none';
 
-      setTimeout(() => {
-        submitBtn.textContent = originalText;
+      const formData = new FormData(quoteForm);
+
+      fetch(quoteForm.action, {
+        method: 'POST',
+        body: formData,
+        headers: { 'Accept': 'application/json' }
+      })
+      .then(response => {
+        if (response.ok) {
+          submitBtn.textContent = 'Thank You!';
+          quoteForm.reset();
+          setTimeout(() => {
+            submitBtn.textContent = originalText;
+            submitBtn.style.pointerEvents = '';
+          }, 4000);
+        } else {
+          submitBtn.textContent = 'Error — Try Again';
+          submitBtn.style.pointerEvents = '';
+          setTimeout(() => { submitBtn.textContent = originalText; }, 3000);
+        }
+      })
+      .catch(() => {
+        submitBtn.textContent = 'Error — Try Again';
         submitBtn.style.pointerEvents = '';
-        quoteForm.reset();
-      }, 3000);
+        setTimeout(() => { submitBtn.textContent = originalText; }, 3000);
+      });
     });
   }
 
