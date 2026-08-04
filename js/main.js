@@ -1,3 +1,5 @@
+if (window.top !== window.self) { window.top.location = window.self.location; }
+
 document.addEventListener('DOMContentLoaded', () => {
 
   // ── Navigation Toggle ──────────────────
@@ -101,6 +103,9 @@ document.addEventListener('DOMContentLoaded', () => {
   if (quoteForm) {
     quoteForm.addEventListener('submit', (e) => {
       e.preventDefault();
+
+      const honeypot = quoteForm.querySelector('[name="_gotcha"]');
+      if (honeypot && honeypot.value) { quoteForm.reset(); return; }
 
       const submitBtn = quoteForm.querySelector('.form__submit');
       const originalText = submitBtn.textContent;
@@ -212,7 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
   //  PROJECT DETAIL PAGE
   // ══════════════════════════════════════════
 
-  const projectDetail = document.getElementById('projectDetail');
+  const projectDetail = document.querySelector('.pj-detail');
 
   if (projectDetail) {
     const params = new URLSearchParams(window.location.search);
@@ -230,10 +235,13 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('pjTag').textContent = project.tag;
       document.getElementById('pjTitle').textContent = project.title;
 
-      // Description with paragraphs
       const descEl = document.getElementById('pjDesc');
       const paragraphs = (project.detail || project.desc).split('\n\n');
-      descEl.innerHTML = paragraphs.map(p => '<p>' + p.trim() + '</p>').join('');
+      descEl.innerHTML = paragraphs.map(p => {
+        const div = document.createElement('div');
+        div.textContent = p.trim();
+        return '<p>' + div.innerHTML + '</p>';
+      }).join('');
 
       // Specs
       const specs = [
@@ -259,7 +267,11 @@ document.addEventListener('DOMContentLoaded', () => {
       images.forEach((url, i) => {
         const item = document.createElement('div');
         item.className = 'pj-gallery__item' + (i === 0 ? ' pj-gallery__item--large' : '');
-        item.innerHTML = '<img src="' + url + '" alt="' + project.title + ' - Image ' + (i + 1) + '" loading="lazy">';
+        const galleryImg = document.createElement('img');
+        galleryImg.src = url;
+        galleryImg.alt = project.title + ' - Image ' + (i + 1);
+        galleryImg.loading = 'lazy';
+        item.appendChild(galleryImg);
         galleryEl.appendChild(item);
       });
 
@@ -293,17 +305,30 @@ document.addEventListener('DOMContentLoaded', () => {
     updateProjectCount();
   }
 
+  function escapeHTML(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
   function createProjectCard(id, p) {
     const a = document.createElement('a');
-    a.href = 'project.html?id=' + id;
+    a.href = 'project.html?id=' + encodeURIComponent(id);
     a.className = 'pf-card';
     a.dataset.category = p.category;
     a.dataset.projectId = id;
-    a.innerHTML =
-      '<div class="pf-card__image"><img src="' + p.mainImage + '" alt="' + p.title + '" loading="lazy"></div>' +
-      '<div class="pf-card__overlay"><span class="pf-card__tag">' + p.tag + '</span>' +
-      '<h3 class="pf-card__title">' + p.title + '</h3>' +
-      '<p class="pf-card__desc">' + p.desc + '</p></div>';
+    const img = document.createElement('img');
+    img.src = p.mainImage;
+    img.alt = p.title;
+    img.loading = 'lazy';
+    const imageDiv = document.createElement('div');
+    imageDiv.className = 'pf-card__image';
+    imageDiv.appendChild(img);
+    a.appendChild(imageDiv);
+    a.insertAdjacentHTML('beforeend',
+      '<div class="pf-card__overlay"><span class="pf-card__tag">' + escapeHTML(p.tag) + '</span>' +
+      '<h3 class="pf-card__title">' + escapeHTML(p.title) + '</h3>' +
+      '<p class="pf-card__desc">' + escapeHTML(p.desc) + '</p></div>');
 
     // Reveal animation
     a.classList.add('reveal');
@@ -373,6 +398,11 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
+      if (!/^https:\/\/.+/i.test(mainImage)) {
+        alert('Image URLs must use HTTPS (https://...)');
+        return;
+      }
+
       const gallery = galleryText ? galleryText.split('\n').map(s => s.trim()).filter(s => s) : [mainImage];
       if (!gallery.includes(mainImage)) gallery.unshift(mainImage);
 
@@ -407,7 +437,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   // ── CMS / Admin System ─────────────────
-  const ADMIN_PASSWORD = 'tggc2026';
+  const ADMIN_PASSWORD_HASH = '965af5946a670ba928fc77581dfbfd08f4135ae57053b43e8513221b13db6f8d';
+  const MAX_LOGIN_ATTEMPTS = 5;
+  const LOCKOUT_DURATION = 5 * 60 * 1000;
+  let loginAttempts = 0;
+  let lockoutUntil = 0;
+  let adminSessionTimeout = null;
+
+  async function hashPassword(password) {
+    const data = new TextEncoder().encode(password);
+    const hash = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  function resetAdminTimeout() {
+    if (adminSessionTimeout) clearTimeout(adminSessionTimeout);
+    adminSessionTimeout = setTimeout(() => { exitAdminMode(); }, 30 * 60 * 1000);
+  }
   const STORAGE_KEY = 'tggc_cms_content';
   const IMG_STORAGE_KEY = 'tggc_cms_images';
 
@@ -431,6 +477,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const imgEditCancel = document.getElementById('imgEditCancel');
   let currentEditingImg = null;
 
+  function sanitizeHTML(html) {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    doc.querySelectorAll('script,style,iframe,object,embed,link').forEach(el => el.remove());
+    doc.querySelectorAll('*').forEach(el => {
+      [...el.attributes].forEach(attr => {
+        if (attr.name.startsWith('on') || (typeof attr.value === 'string' && attr.value.includes('javascript:'))) {
+          el.removeAttribute(attr.name);
+        }
+      });
+    });
+    return doc.body.innerHTML;
+  }
+
   function loadSavedContent() {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -439,7 +498,7 @@ document.addEventListener('DOMContentLoaded', () => {
       editableElements.forEach(el => {
         const key = el.dataset.editable;
         if (content[key] !== undefined) {
-          el.innerHTML = content[key];
+          el.innerHTML = sanitizeHTML(content[key]);
         }
       });
     } catch (e) {}
@@ -496,8 +555,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (imgEditApply) {
     imgEditApply.addEventListener('click', () => {
-      if (currentEditingImg && imgEditUrl.value.trim()) {
-        currentEditingImg.src = imgEditUrl.value.trim();
+      const url = imgEditUrl.value.trim();
+      if (currentEditingImg && url) {
+        if (!/^https:\/\/.+/i.test(url)) {
+          imgEditUrl.style.borderColor = '#e74c3c';
+          return;
+        }
+        imgEditUrl.style.borderColor = '';
+        currentEditingImg.src = url;
         closeImageEditor();
       }
     });
@@ -509,7 +574,13 @@ document.addEventListener('DOMContentLoaded', () => {
   if (imgEditUrl) {
     imgEditUrl.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && currentEditingImg && imgEditUrl.value.trim()) {
-        currentEditingImg.src = imgEditUrl.value.trim();
+        const url = imgEditUrl.value.trim();
+        if (!/^https:\/\/.+/i.test(url)) {
+          imgEditUrl.style.borderColor = '#e74c3c';
+          return;
+        }
+        imgEditUrl.style.borderColor = '';
+        currentEditingImg.src = url;
         closeImageEditor();
       }
       if (e.key === 'Escape') closeImageEditor();
@@ -518,6 +589,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function enterAdminMode() {
     document.body.classList.add('admin-mode');
+    resetAdminTimeout();
     adminToolbar.classList.add('active');
     adminModal.classList.remove('active');
     adminPassword.value = '';
@@ -551,6 +623,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function exitAdminMode() {
+    if (adminSessionTimeout) { clearTimeout(adminSessionTimeout); adminSessionTimeout = null; }
     document.body.classList.remove('admin-mode');
     adminToolbar.classList.remove('active');
     closeImageEditor();
@@ -602,11 +675,26 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function attemptLogin() {
-    if (adminPassword.value === ADMIN_PASSWORD) {
+  async function attemptLogin() {
+    const now = Date.now();
+    if (now < lockoutUntil) {
+      const remaining = Math.ceil((lockoutUntil - now) / 1000);
+      adminError.textContent = 'Too many attempts. Try again in ' + remaining + 's.';
+      adminPassword.value = '';
+      return;
+    }
+    const hash = await hashPassword(adminPassword.value);
+    if (hash === ADMIN_PASSWORD_HASH) {
+      loginAttempts = 0;
       enterAdminMode();
     } else {
-      adminError.textContent = 'Incorrect password.';
+      loginAttempts++;
+      if (loginAttempts >= MAX_LOGIN_ATTEMPTS) {
+        lockoutUntil = now + LOCKOUT_DURATION;
+        adminError.textContent = 'Account locked. Try again in 5 minutes.';
+      } else {
+        adminError.textContent = 'Incorrect password. (' + (MAX_LOGIN_ATTEMPTS - loginAttempts) + ' attempts remaining)';
+      }
       adminPassword.value = '';
       adminPassword.focus();
     }
@@ -622,6 +710,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (adminSave) {
     adminSave.addEventListener('click', () => {
       saveContent();
+      resetAdminTimeout();
       const btn = adminSave;
       const original = btn.textContent;
       btn.textContent = 'Saved!';
@@ -633,5 +722,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
   loadSavedContent();
   loadSavedImages();
+
+  // ── Cookie Consent Banner ─────────────
+  const CONSENT_KEY = 'tggc_cookie_consent';
+  if (!localStorage.getItem(CONSENT_KEY)) {
+    const banner = document.createElement('div');
+    banner.className = 'cookie-banner';
+    const inner = document.createElement('div');
+    inner.className = 'cookie-banner__inner';
+    const text = document.createElement('p');
+    text.textContent = 'This site uses cookies from third-party services (Google Fonts) for essential functionality. See our ';
+    const link = document.createElement('a');
+    link.href = 'privacy.html';
+    link.textContent = 'Privacy Policy';
+    text.appendChild(link);
+    text.appendChild(document.createTextNode('.'));
+    const btn = document.createElement('button');
+    btn.className = 'cookie-banner__btn';
+    btn.textContent = 'Got it';
+    btn.addEventListener('click', () => {
+      localStorage.setItem(CONSENT_KEY, '1');
+      banner.remove();
+    });
+    inner.appendChild(text);
+    inner.appendChild(btn);
+    banner.appendChild(inner);
+    document.body.appendChild(banner);
+  }
 
 });
