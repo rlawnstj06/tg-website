@@ -105,6 +105,8 @@ code{font-family:ui-monospace,Menlo,Consolas,monospace;background:rgba(0,0,0,.25
 /* cards */
 .card{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);padding:22px 24px;margin-bottom:18px}
 .card h3{font-size:1.1rem;margin-bottom:14px}
+.settings-sub{font-family:var(--sans);font-weight:700;font-size:.82rem;letter-spacing:.03em;color:var(--gold-l);
+  margin:20px 0 10px;padding-top:16px;border-top:1px solid var(--border)}
 .card--form .form-grid{margin-top:6px}
 .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;align-items:end}
 .form-grid .btn{height:42px}

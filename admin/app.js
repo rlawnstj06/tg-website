@@ -682,6 +682,31 @@
     if (who && user) who.textContent = user.email;
   }
 
+  $('#emailForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = $('#emNew').value.trim().toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { toast('올바른 이메일을 입력하세요', 'err'); return; }
+    if (!confirm(`로그인 아이디를 "${email}" 로 변경합니다. 다음 로그인부터 이 이메일을 사용합니다. 계속할까요?`)) return;
+    const btn = $('#emBtn'); btn.disabled = true; btn.textContent = '변경 중…';
+    try {
+      const { data: { session } } = await db.auth.getSession();
+      const res = await fetch(`${CFG.FUNCTIONS_URL}/update-my-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}`, 'apikey': CFG.SUPABASE_KEY },
+        body: JSON.stringify({ email }),
+      });
+      const out = await res.json();
+      if (!res.ok) throw new Error(out.error || '변경 실패');
+      await db.auth.refreshSession();
+      const { data: { user: u2 } } = await db.auth.getUser();
+      if (u2) { user = u2; $('#userEmail').textContent = u2.email; $('#pwWhoEmail').textContent = u2.email; }
+      $('#emailForm').reset();
+      toast('이메일이 변경되었습니다', 'ok');
+    } catch (err) {
+      toast('실패: ' + err.message, 'err');
+    } finally { btn.disabled = false; btn.textContent = '이메일 변경'; }
+  });
+
   $('#pwForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const n = $('#pwNew').value, c = $('#pwConfirm').value;
