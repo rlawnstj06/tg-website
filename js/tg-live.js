@@ -155,7 +155,30 @@
   function setText(id, v) { var e = document.getElementById(id); if (e && v != null) e.textContent = v; }
   function cssEsc(s) { return String(s).replace(/"/g, '\\"'); }
 
-  /* ---------- 3) route the old "Are you admin?" button to the dashboard ---------- */
+  /* ---------- services: collapse on mobile (progressive enhancement) ---------- */
+  var slist = document.querySelector('.services__list');
+  var stoggle = document.getElementById('servicesToggle');
+  if (slist && stoggle) {
+    slist.classList.add('js-collapsible');
+    var hiddenCount = Math.max(0, slist.querySelectorAll('.services__item').length - 6);
+    var setLabel = function () {
+      stoggle.textContent = slist.classList.contains('is-expanded')
+        ? '접기 ▲'
+        : '서비스 더보기 (+' + hiddenCount + ') ▼';
+    };
+    setLabel();
+    stoggle.addEventListener('click', function () {
+      var expanding = !slist.classList.contains('is-expanded');
+      slist.classList.toggle('is-expanded');
+      setLabel();
+      if (!expanding) {
+        var s = document.getElementById('services');
+        if (s) s.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  }
+
+  /* ---------- route the old "Are you admin?" button to the dashboard ---------- */
   var trigger = document.getElementById('adminTrigger');
   if (trigger) {
     trigger.addEventListener('click', function (e) {
