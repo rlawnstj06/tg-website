@@ -21,6 +21,7 @@
   let sites = [];
   let currentSiteId = null;
   let contentMap = {};
+  let siteStats = {};
 
   // ---- tiny DOM helpers ----
   const $ = (s, r = document) => r.querySelector(s);
@@ -208,10 +209,36 @@
      SITES & RECORDS
      ========================================================== */
   async function loadSites() {
-    const { data, error } = await db.from('sites').select('*').order('created_at', { ascending: false });
-    if (error) { toast('현장 불러오기 실패', 'err'); return; }
-    sites = data || [];
+    const [sitesRes, statsRes] = await Promise.all([
+      db.from('sites').select('*').order('created_at', { ascending: false }),
+      db.from('site_media_stats').select('*'),
+    ]);
+    if (sitesRes.error) { toast('현장 불러오기 실패', 'err'); return; }
+    sites = sitesRes.data || [];
+    siteStats = {};
+    (statsRes.data || []).forEach(s => { siteStats[s.site_id] = s; });
     renderSiteList();
+  }
+
+  async function refreshStats() {
+    const { data } = await db.from('site_media_stats').select('*');
+    siteStats = {};
+    (data || []).forEach(s => { siteStats[s.site_id] = s; });
+    renderSiteList();
+    if (currentSiteId) updateRecordsStat();
+  }
+
+  function statText(id) {
+    const s = siteStats[id];
+    if (!s || !s.file_count) return '파일 없음';
+    return `파일 ${s.file_count}개 · ${fmtSize(s.total_bytes)}`;
+  }
+  function updateRecordsStat() {
+    const el = $('#rh_stat'); if (!el) return;
+    const s = siteStats[currentSiteId];
+    el.textContent = s && s.file_count
+      ? `사진 ${s.photo_count} · 영상 ${s.video_count} · 파일 ${s.file_only_count}  ·  총 ${fmtSize(s.total_bytes)}`
+      : '아직 올린 파일이 없습니다';
   }
 
   function renderSiteList() {
@@ -229,10 +256,12 @@
       const name = document.createElement('div'); name.className = 'site-card__name'; name.textContent = s.name;
       const meta = document.createElement('div'); meta.className = 'site-card__meta';
       meta.textContent = [s.client, s.address].filter(Boolean).join(' · ') || '—';
+      const stat = document.createElement('div'); stat.className = 'site-card__filestat';
+      stat.textContent = statText(s.id);
       const st = document.createElement('span');
       st.className = 'site-card__status status--' + s.status;
       st.textContent = s.status === 'completed' ? '완료' : '진행중';
-      b.append(name, meta, st);
+      b.append(name, meta, stat, st);
       b.addEventListener('click', () => selectSite(s.id));
       list.appendChild(b);
     });
@@ -278,8 +307,12 @@
         <div>
           <h3 id="rh_name"></h3>
           <p class="muted" id="rh_meta"></p>
+          <p class="records-head__stat" id="rh_stat"></p>
         </div>
-        ${isAdmin() ? '<button class="btn btn--ghost btn--sm" id="editSiteBtn">현장 정보 수정</button>' : ''}
+        <div class="records-head__actions">
+          <button class="btn btn--ghost btn--sm" id="downloadAllBtn">⬇ 전체 다운로드</button>
+          ${isAdmin() ? '<button class="btn btn--ghost btn--sm" id="editSiteBtn">현장 정보 수정</button>' : ''}
+        </div>
       </div>
       <div class="uploader" id="uploader">
         <div class="uploader__row">
@@ -287,8 +320,12 @@
           <label class="field"><span>메모 (선택)</span><input type="text" id="up_note" placeholder="예: 1층 배관 작업"></label>
         </div>
         <div class="uploader__drop" id="dropZone">
-          <b>사진·동영상·파일</b>을 여기로 끌어다 놓거나 <b>클릭</b>해서 선택하세요.<br>
-          <small class="muted">여러 개 동시 업로드 가능 · 파일당 최대 100MB</small>
+          <div class="uploader__buttons">
+            <button type="button" class="btn btn--gold btn--sm" id="pickCamera">📷 사진 촬영</button>
+            <button type="button" class="btn btn--ghost btn--sm" id="pickFiles">📁 파일 선택</button>
+          </div>
+          <small class="muted">여러 개 동시 업로드 · 끌어다 놓기도 됩니다 · 파일당 최대 100MB</small>
+          <input type="file" id="cameraInput" accept="image/*" capture="environment" hidden>
           <input type="file" id="fileInput" multiple hidden>
         </div>
         <div class="uploader__queue" id="queue"></div>
@@ -296,16 +333,20 @@
       <div id="mediaWrap"></div>`;
     $('#rh_name').textContent = site.name;
     $('#rh_meta').textContent = [site.client, site.address, site.notes].filter(Boolean).join(' · ') || '—';
+    updateRecordsStat();
     $('#up_date').value = new Date().toISOString().slice(0, 10);
 
     // upload wiring
-    const drop = $('#dropZone'), input = $('#fileInput');
-    drop.addEventListener('click', () => input.click());
+    const drop = $('#dropZone'), input = $('#fileInput'), cam = $('#cameraInput');
+    $('#pickFiles').addEventListener('click', () => input.click());
+    $('#pickCamera').addEventListener('click', () => cam.click());
     input.addEventListener('change', () => { handleFiles(input.files); input.value = ''; });
+    cam.addEventListener('change', () => { handleFiles(cam.files); cam.value = ''; });
     ['dragover', 'dragenter'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); $('#uploader').classList.add('drag'); }));
     ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); $('#uploader').classList.remove('drag'); }));
     drop.addEventListener('drop', e => { if (e.dataTransfer.files) handleFiles(e.dataTransfer.files); });
 
+    $('#downloadAllBtn').addEventListener('click', () => downloadAllFiles(id, site.name));
     if (isAdmin()) $('#editSiteBtn').addEventListener('click', () => editSite(site));
 
     await loadMedia(id);
@@ -384,6 +425,44 @@
       setTimeout(() => item.remove(), 1500);
     }
     await loadMedia(currentSiteId);
+    await refreshStats();
+  }
+
+  async function downloadAllFiles(siteId, siteName) {
+    const { data, error } = await db.from('media').select('*')
+      .eq('site_id', siteId).order('captured_on').order('created_at');
+    if (error) { toast('목록 불러오기 실패', 'err'); return; }
+    if (!data || !data.length) { toast('다운로드할 파일이 없습니다'); return; }
+    if (typeof JSZip === 'undefined') { toast('압축 모듈 로드 실패', 'err'); return; }
+
+    const btn = $('#downloadAllBtn'); const orig = btn.textContent; btn.disabled = true;
+    try {
+      const zip = new JSZip();
+      const paths = data.map(m => m.storage_path);
+      const { data: signed } = await db.storage.from(CFG.BUCKET_MEDIA).createSignedUrls(paths, 3600);
+      const urlByPath = {}; (signed || []).forEach(s => { if (s.path && s.signedUrl) urlByPath[s.path] = s.signedUrl; });
+
+      let i = 0;
+      for (const m of data) {
+        const url = urlByPath[m.storage_path]; if (!url) continue;
+        btn.textContent = `받는 중 ${++i}/${data.length}`;
+        const resp = await fetch(url);
+        const blob = await resp.blob();
+        const folder = (m.captured_on || '기타');
+        const safe = String(m.file_name || m.id).replace(/[\/\\]/g, '_');
+        zip.file(`${folder}/${String(i).padStart(3, '0')}_${safe}`, blob);
+      }
+      btn.textContent = '압축 중…';
+      const out = await zip.generateAsync({ type: 'blob' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(out);
+      a.download = `${String(siteName || '현장').replace(/[\/\\]/g, '_')}_기록.zip`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+      toast('다운로드가 시작되었습니다', 'ok');
+    } catch (e) {
+      toast('다운로드 실패: ' + e.message, 'err');
+    } finally { btn.disabled = false; btn.textContent = orig; }
   }
 
   async function loadMedia(siteId) {
@@ -441,7 +520,7 @@
         if (!confirm('이 파일을 삭제할까요?')) return;
         await db.storage.from(CFG.BUCKET_MEDIA).remove([m.storage_path]);
         await db.from('media').delete().eq('id', m.id);
-        toast('삭제되었습니다', 'ok'); await loadMedia(currentSiteId);
+        toast('삭제되었습니다', 'ok'); await loadMedia(currentSiteId); await refreshStats();
       });
       card.appendChild(del);
     }
