@@ -19,15 +19,35 @@
   var isPortfolio = !!document.getElementById('commercialGrid');
   var isDetail = !!document.querySelector('.pj-detail');
 
-  /* ---------- 1) text content ---------- */
+  /* ---------- 1) text + image content ---------- */
   rest('site_content?select=key,value').then(function (rows) {
     var map = {};
     rows.forEach(function (r) { map[r.key] = r.value; });
+
+    // text
     document.querySelectorAll('[data-editable]').forEach(function (el) {
       var k = el.getAttribute('data-editable');
       // project card titles/descs are handled by the projects sync below
       if (/^pf-[cr]\d+(-d)?$/.test(k)) return;
       if (map[k] != null && map[k] !== '') el.textContent = map[k];
+    });
+
+    // images (both <img src> and CSS background elements like team photos)
+    document.querySelectorAll('[data-editable-img]').forEach(function (el) {
+      var k = el.getAttribute('data-editable-img');
+      // portfolio card images come from the projects table
+      if (/^pf-img-/.test(k)) return;
+      var v = map[k];
+      if (v == null || v === '') return;
+      if (el.tagName === 'IMG') {
+        el.src = v;
+      } else {
+        el.style.backgroundImage = 'url("' + v.replace(/"/g, '\\"') + '")';
+        el.style.backgroundSize = 'cover';
+        el.style.backgroundPosition = 'center';
+        var span = el.querySelector('span');
+        if (span) span.style.display = 'none';
+      }
     });
   }).catch(function () {});
 

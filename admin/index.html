@@ -106,12 +106,17 @@
         <div><h2>웹사이트 편집</h2><p class="view__desc">변경 즉시 <a href="https://www.tggcltd.com" target="_blank" rel="noopener">tggcltd.com</a>에 반영됩니다.</p></div>
         <div class="tabs">
           <button class="tab is-active" data-tab="projects">포트폴리오 프로젝트</button>
+          <button class="tab" data-tab="images">사진</button>
           <button class="tab" data-tab="text">사이트 텍스트</button>
         </div>
       </header>
       <div class="tabpane is-active" id="tab-projects">
         <div class="view__toolbar"><button class="btn btn--gold btn--sm" id="newProjectBtn">+ 새 프로젝트</button></div>
         <div id="projectList" class="project-grid"></div>
+      </div>
+      <div class="tabpane" id="tab-images">
+        <p class="muted" style="margin-bottom:16px">각 사진의 <b>교체</b>를 눌러 새 이미지를 올리면 즉시 사이트에 반영됩니다.</p>
+        <div id="imageEditor" class="content-editor"></div>
       </div>
       <div class="tabpane" id="tab-text">
         <div id="contentEditor" class="content-editor"></div>

@@ -54,3 +54,20 @@ window.TG_CONTENT_FIELDS = [
     { key: 'pf-cta-text',   label: 'CTA 문구', type: 'textarea' },
   ]},
 ];
+
+/* Editable site images (map to data-editable-img keys). `default` shows the
+   built-in image as the thumbnail until the owner replaces it. */
+window.TG_IMAGE_FIELDS = [
+  { group: '메인 페이지 사진', fields: [
+    { key: 'contact-img', label: '연락처 섹션 사진 ("Ready to Build" 옆)',
+      default: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=800&q=80' },
+    { key: 'projects-banner-img', label: '"Our Projects" 배너 배경',
+      default: 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1600&q=80' },
+  ]},
+  { group: '팀 / 사장님 · 직원 사진', fields: [
+    { key: 'team-1-photo', label: '팀원 1 사진 (Ben Lee · Founder)', round: true },
+    { key: 'team-2-photo', label: '팀원 2 사진 (Stanley Park · Project Manager)', round: true },
+    { key: 'team-3-photo', label: '팀원 3 사진 (Reese Platt · General Contractor)', round: true },
+    { key: 'team-4-photo', label: '팀원 4 사진 (Jamie Kokot · Construction Engineer)', round: true },
+  ]},
+];

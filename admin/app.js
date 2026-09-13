@@ -201,6 +201,7 @@
   $$('.tab').forEach(t => t.addEventListener('click', () => {
     $$('.tab').forEach(x => x.classList.toggle('is-active', x === t));
     $$('.tabpane').forEach(p => p.classList.toggle('is-active', p.id === 'tab-' + t.dataset.tab));
+    if (t.dataset.tab === 'images') renderImageEditor();
   }));
 
   /* ==========================================================
@@ -625,6 +626,79 @@
     rows.forEach(r => { contentMap[r.key] = r.value; });
     toast(rows.length + '개 항목이 저장되어 사이트에 반영되었습니다', 'ok');
   });
+
+  /* ==========================================================
+     WEBSITE · IMAGES
+     ========================================================== */
+  async function renderImageEditor() {
+    const wrap = $('#imageEditor');
+    wrap.innerHTML = '<p class="muted">불러오는 중…</p>';
+    const { data } = await db.from('site_content').select('key, value');
+    const stored = {}; (data || []).forEach(r => { stored[r.key] = r.value; });
+    wrap.innerHTML = '';
+    window.TG_IMAGE_FIELDS.forEach(group => {
+      const g = document.createElement('div'); g.className = 'ce-group';
+      const h = document.createElement('h3'); h.textContent = group.group; g.appendChild(h);
+      const grid = document.createElement('div'); grid.className = 'img-slot-grid';
+      group.fields.forEach(f => grid.appendChild(imageSlot(f, stored[f.key])));
+      g.appendChild(grid); wrap.appendChild(g);
+    });
+  }
+
+  function imageSlot(f, currentVal) {
+    const slot = document.createElement('div'); slot.className = 'img-slot';
+    const label = document.createElement('div'); label.className = 'img-slot__label'; label.textContent = f.label;
+    const prev = document.createElement('div'); prev.className = 'img-slot__preview' + (f.round ? ' round' : '');
+    const img = document.createElement('img');
+    const shown = currentVal || f.default || '';
+    if (shown) img.src = shown; else prev.textContent = '사진 없음';
+    if (shown) prev.appendChild(img);
+
+    const actions = document.createElement('div'); actions.className = 'img-slot__actions';
+    const upBtn = document.createElement('button'); upBtn.className = 'btn btn--gold btn--sm'; upBtn.textContent = '교체';
+    const file = document.createElement('input'); file.type = 'file'; file.accept = 'image/*'; file.hidden = true;
+    upBtn.addEventListener('click', () => file.click());
+    file.addEventListener('change', async e => {
+      const ff = e.target.files[0]; if (!ff) return;
+      upBtn.disabled = true; upBtn.textContent = '올리는 중…';
+      const url = await uploadImage(ff);
+      upBtn.disabled = false; upBtn.textContent = '교체';
+      if (url) { await saveImage(f.key, url); prev.textContent = ''; prev.appendChild(img); img.src = url; showReset(); toast('사진이 교체되어 사이트에 반영되었습니다', 'ok'); }
+    });
+
+    const urlBtn = document.createElement('button'); urlBtn.className = 'btn btn--ghost btn--sm'; urlBtn.textContent = 'URL';
+    urlBtn.addEventListener('click', async () => {
+      const u = prompt('이미지 URL을 붙여넣으세요:', currentVal || '');
+      if (u == null) return;
+      const v = u.trim(); if (!v) return;
+      await saveImage(f.key, v); prev.textContent = ''; prev.appendChild(img); img.src = v; showReset(); toast('사진이 변경되었습니다', 'ok');
+    });
+
+    const resetBtn = document.createElement('button'); resetBtn.className = 'btn btn--ghost btn--sm'; resetBtn.textContent = '기본값 복원';
+    resetBtn.hidden = !currentVal;
+    resetBtn.addEventListener('click', async () => {
+      if (!confirm('이 사진을 기본값으로 되돌릴까요?')) return;
+      await deleteImage(f.key);
+      resetBtn.hidden = true;
+      if (f.default) { img.src = f.default; prev.textContent = ''; prev.appendChild(img); }
+      else { prev.textContent = '사진 없음'; if (img.parentNode) prev.removeChild(img); }
+      toast('기본값으로 복원되었습니다', 'ok');
+    });
+    function showReset() { resetBtn.hidden = false; }
+
+    actions.append(upBtn, urlBtn, resetBtn, file);
+    slot.append(label, prev, actions);
+    return slot;
+  }
+
+  async function saveImage(key, url) {
+    const { error } = await db.from('site_content').upsert({ key, value: url, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+    if (error) toast('저장 실패: ' + error.message, 'err');
+  }
+  async function deleteImage(key) {
+    const { error } = await db.from('site_content').delete().eq('key', key);
+    if (error) toast('삭제 실패: ' + error.message, 'err');
+  }
 
   /* ==========================================================
      STAFF
