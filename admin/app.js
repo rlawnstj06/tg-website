@@ -677,7 +677,23 @@
   /* ==========================================================
      SETTINGS
      ========================================================== */
-  function loadSettings() { /* static info only */ }
+  function loadSettings() {
+    const who = $('#pwWhoEmail');
+    if (who && user) who.textContent = user.email;
+  }
+
+  $('#pwForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const n = $('#pwNew').value, c = $('#pwConfirm').value;
+    if (n.length < 6) { toast('비밀번호는 6자 이상이어야 합니다', 'err'); return; }
+    if (n !== c) { toast('두 비밀번호가 일치하지 않습니다', 'err'); return; }
+    const btn = $('#pwBtn'); btn.disabled = true; btn.textContent = '변경 중…';
+    const { error } = await db.auth.updateUser({ password: n });
+    btn.disabled = false; btn.textContent = '비밀번호 변경';
+    if (error) { toast('변경 실패: ' + error.message, 'err'); return; }
+    $('#pwForm').reset();
+    toast('비밀번호가 변경되었습니다. 다음 로그인부터 적용됩니다.', 'ok');
+  });
 
   // helper: safe attribute value
   function attr(s) { return esc(s).replace(/"/g, '&quot;'); }
