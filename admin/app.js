@@ -26,11 +26,27 @@
   let currentMedia = [];
   let currentUrlByPath = {};
   let calMonth = null;          // { y, m } (m is 0-based)
+  let myName = '';
+  let employees = [];           // [{id, full_name, role}]
+  let payAnchor = '2026-01-05';
+  let hoursPeriodIdx = null;
+  let hoursFilter = 'me';       // 'me' | 'all' | <userId>
+  let schedWeekStart = null;    // Date (Sunday)
 
   // ---- tiny DOM helpers ----
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
   const isAdmin = () => role === 'admin';
+  const el = (tag, cls) => { const e = document.createElement(tag); if (cls) e.className = cls; return e; };
+
+  // ---- date helpers ----
+  const WD = ['일', '월', '화', '수', '목', '금', '토'];
+  function parseYMD(s) { return new Date(s + 'T00:00:00'); }
+  function toYMD(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
+  function todayYMD() { return toYMD(new Date()); }
+  function fmtMD(d) { return (d.getMonth() + 1) + '월 ' + d.getDate() + '일'; }
+  function calcHours(a, b) { if (!a || !b) return null; const p = a.split(':').map(Number), q = b.split(':').map(Number); let m = (q[0] * 60 + q[1]) - (p[0] * 60 + p[1]); if (m <= 0) return null; return Math.round(m / 15) / 4; }
 
   function toast(msg, kind) {
     const t = $('#toast');
@@ -164,7 +180,9 @@
       role = retry.data ? retry.data.role : 'employee';
     } else {
       role = prof.role;
+      myName = prof.full_name || user.email;
     }
+    if (!myName) myName = user.email;
 
     $('#authScreen').hidden = true;
     $('#appScreen').hidden = false;
@@ -200,6 +218,8 @@
     if (name === 'website' && isAdmin() && !$('#projectList').dataset.loaded) loadProjects();
     if (name === 'staff' && isAdmin()) loadStaff();
     if (name === 'settings' && isAdmin()) loadSettings();
+    if (name === 'hours') loadHours();
+    if (name === 'schedule') loadSchedule();
   }
 
   // website sub-tabs
@@ -865,6 +885,280 @@
   async function deleteImage(key) {
     const { error } = await db.from('site_content').delete().eq('key', key);
     if (error) toast('삭제 실패: ' + error.message, 'err');
+  }
+
+  /* ==========================================================
+     EMPLOYEES (shared loader)
+     ========================================================== */
+  async function loadEmployees() {
+    // admin-only callers; admin can read all profiles via RLS
+    const { data } = await db.from('profiles').select('id, full_name, role').eq('role', 'employee').order('full_name');
+    employees = data || [];
+  }
+
+  /* ==========================================================
+     HOURS (timesheets, bi-weekly)
+     ========================================================== */
+  function periodIndexOf(ymd) { return Math.floor((parseYMD(ymd) - parseYMD(payAnchor)) / (14 * 864e5)); }
+  function periodBounds(idx) { const start = addDays(parseYMD(payAnchor), idx * 14); return { start, end: addDays(start, 13) }; }
+
+  async function loadHours() {
+    const { data: s } = await db.from('app_settings').select('value').eq('key', 'pay_period_anchor').maybeSingle();
+    if (s && typeof s.value === 'string') payAnchor = s.value;
+    if (hoursPeriodIdx === null) hoursPeriodIdx = periodIndexOf(todayYMD());
+    if (isAdmin()) await loadEmployees();
+    renderHours();
+  }
+
+  function periodNav(start, end, onPrev, onNext) {
+    const nav = el('div', 'period-nav');
+    const prev = el('button', 'cal__nav'); prev.type = 'button'; prev.textContent = '◀'; prev.onclick = onPrev;
+    const label = el('div', 'period-nav__label'); label.textContent = start.getFullYear() + '. ' + fmtMD(start) + ' ~ ' + fmtMD(end);
+    const next = el('button', 'cal__nav'); next.type = 'button'; next.textContent = '▶'; next.onclick = onNext;
+    nav.append(prev, label, next); return nav;
+  }
+
+  function renderHours() {
+    const body = $('#hoursBody'); body.innerHTML = '';
+    const { start, end } = periodBounds(hoursPeriodIdx);
+    body.appendChild(periodNav(start, end,
+      () => { hoursPeriodIdx--; renderHours(); },
+      () => { hoursPeriodIdx++; renderHours(); }));
+    if (isAdmin()) renderHoursAdmin(body, start, end);
+    else renderHoursEmployee(body, start, end);
+  }
+
+  function renderHoursEmployee(body, start, end) {
+    const form = el('div', 'card card--form');
+    form.innerHTML = `
+      <h3>근무 기록 추가</h3>
+      <div class="form-grid">
+        <label class="field"><span>날짜</span><input type="date" id="ts_date"></label>
+        <label class="field"><span>시작</span><input type="time" id="ts_start"></label>
+        <label class="field"><span>종료</span><input type="time" id="ts_end"></label>
+        <label class="field"><span>시간 <small>(시간수)</small></span><input type="number" step="0.25" min="0" id="ts_hours" placeholder="예: 10"></label>
+        <label class="field"><span>현장</span><input type="text" id="ts_loc" placeholder="예: Richmond"></label>
+        <label class="field"><span>메모</span><input type="text" id="ts_note"></label>
+        <button class="btn btn--gold" id="ts_save">기록</button>
+      </div>`;
+    body.appendChild(form);
+    $('#ts_date').value = todayYMD();
+    const auto = () => { const h = calcHours($('#ts_start').value, $('#ts_end').value); if (h != null && !$('#ts_hours').value) $('#ts_hours').value = h; };
+    $('#ts_start').addEventListener('change', auto); $('#ts_end').addEventListener('change', auto);
+    $('#ts_save').addEventListener('click', saveTimesheet);
+    const list = el('div'); body.appendChild(list);
+    renderTimesheetList(list, start, end, user.id, true);
+  }
+
+  async function saveTimesheet() {
+    const date = $('#ts_date').value; if (!date) { toast('날짜를 선택하세요', 'err'); return; }
+    const st = $('#ts_start').value || null, en = $('#ts_end').value || null;
+    let hours = parseFloat($('#ts_hours').value);
+    if (isNaN(hours)) { const c = calcHours(st, en); hours = c != null ? c : 0; }
+    if (!hours) { toast('시간수를 입력하거나 시작·종료를 입력하세요', 'err'); return; }
+    const btn = $('#ts_save'); btn.disabled = true;
+    const { error } = await db.from('timesheets').insert({
+      user_id: user.id, user_name: myName, work_date: date, start_time: st, end_time: en,
+      hours, location: $('#ts_loc').value.trim() || null, note: $('#ts_note').value.trim() || null,
+    });
+    btn.disabled = false;
+    if (error) { toast('저장 실패: ' + error.message, 'err'); return; }
+    toast('근무 기록이 저장되었습니다', 'ok'); renderHours();
+  }
+
+  async function renderTimesheetList(wrap, start, end, userId, editable) {
+    wrap.innerHTML = '<p class="muted">불러오는 중…</p>';
+    let q = db.from('timesheets').select('*')
+      .gte('work_date', toYMD(start)).lte('work_date', toYMD(end))
+      .order('work_date', { ascending: false }).order('created_at', { ascending: false });
+    if (userId) q = q.eq('user_id', userId);
+    const { data, error } = await q;
+    if (error) { wrap.innerHTML = '<p class="muted">불러오기 실패</p>'; return; }
+    const total = (data || []).reduce((s, r) => s + Number(r.hours || 0), 0);
+    wrap.innerHTML = '';
+    const tot = el('div', 'hours-total'); tot.innerHTML = '이 기간 합계 <b>' + total + '시간</b> · ' + data.length + '건'; wrap.appendChild(tot);
+    if (!data.length) { const e = el('div', 'empty'); e.textContent = '이 기간에 기록이 없습니다.'; wrap.appendChild(e); return; }
+    data.forEach(r => wrap.appendChild(timesheetRow(r, editable, false)));
+  }
+
+  function timesheetRow(r, editable, showWho) {
+    const row = el('div', 'ts-row');
+    const left = el('div');
+    const d = parseYMD(r.work_date);
+    const dateline = el('div', 'ts-row__date'); dateline.textContent = r.work_date + ' (' + WD[d.getDay()] + ')' + (showWho && r.user_name ? ' · ' + r.user_name : '');
+    const meta = el('div', 'ts-row__meta');
+    const parts = [r.hours + '시간'];
+    if (r.location) parts.push(r.location);
+    if (r.start_time && r.end_time) parts.push(r.start_time.slice(0, 5) + '~' + r.end_time.slice(0, 5));
+    if (r.note) parts.push(r.note);
+    meta.textContent = parts.join('  ·  ');
+    left.append(dateline, meta); row.appendChild(left);
+    if (editable) {
+      const actions = el('div', 'ts-row__actions');
+      const ed = el('button', 'btn btn--ghost btn--sm'); ed.textContent = '수정'; ed.onclick = () => editTimesheet(r);
+      const del = el('button', 'btn btn--danger btn--sm'); del.textContent = '삭제';
+      del.onclick = async () => { if (!confirm('이 기록을 삭제할까요?')) return; await db.from('timesheets').delete().eq('id', r.id); toast('삭제됨', 'ok'); renderHours(); };
+      actions.append(ed, del); row.appendChild(actions);
+    }
+    return row;
+  }
+
+  function editTimesheet(r) {
+    openModal(`
+      <h3 class="modal__title">근무 기록 수정</h3>
+      <div class="form-grid">
+        <label class="field"><span>날짜</span><input type="date" id="e_date" value="${attr(r.work_date)}"></label>
+        <label class="field"><span>시작</span><input type="time" id="e_start" value="${r.start_time ? r.start_time.slice(0, 5) : ''}"></label>
+        <label class="field"><span>종료</span><input type="time" id="e_end" value="${r.end_time ? r.end_time.slice(0, 5) : ''}"></label>
+        <label class="field"><span>시간</span><input type="number" step="0.25" id="e_hours" value="${r.hours}"></label>
+        <label class="field"><span>현장</span><input type="text" id="e_loc" value="${attr(r.location)}"></label>
+        <label class="field full"><span>메모</span><input type="text" id="e_note" value="${attr(r.note)}"></label>
+      </div>
+      <div class="modal__foot"><button class="btn btn--ghost" data-close>취소</button><button class="btn btn--gold" id="e_save">저장</button></div>`);
+    $('#e_save').onclick = async () => {
+      const { error } = await db.from('timesheets').update({
+        work_date: $('#e_date').value, start_time: $('#e_start').value || null, end_time: $('#e_end').value || null,
+        hours: parseFloat($('#e_hours').value) || 0, location: $('#e_loc').value.trim() || null,
+        note: $('#e_note').value.trim() || null, updated_at: new Date().toISOString(),
+      }).eq('id', r.id);
+      if (error) { toast('저장 실패', 'err'); return; }
+      closeModal(); toast('저장됨', 'ok'); renderHours();
+    };
+  }
+
+  async function renderHoursAdmin(body, start, end) {
+    const ctr = el('div', 'hours-controls');
+    const sel = el('select', 'field-select');
+    sel.innerHTML = '<option value="all">전체 직원</option>' + employees.map(e => `<option value="${e.id}">${esc(e.full_name || '(이름없음)')}</option>`).join('');
+    sel.value = hoursFilter; sel.onchange = () => { hoursFilter = sel.value; renderHours(); };
+    const anchorBtn = el('button', 'btn btn--ghost btn--sm'); anchorBtn.type = 'button'; anchorBtn.textContent = '급여 시작 기준일';
+    anchorBtn.onclick = setPayAnchor;
+    ctr.append(sel, anchorBtn); body.appendChild(ctr);
+
+    const wrap = el('div'); body.appendChild(wrap);
+    if (hoursFilter === 'all') {
+      wrap.innerHTML = '<p class="muted">불러오는 중…</p>';
+      const { data } = await db.from('timesheets').select('*')
+        .gte('work_date', toYMD(start)).lte('work_date', toYMD(end)).order('work_date', { ascending: false });
+      wrap.innerHTML = '';
+      const byUser = {};
+      (data || []).forEach(r => { byUser[r.user_id] = byUser[r.user_id] || { name: r.user_name, total: 0, count: 0 }; byUser[r.user_id].total += Number(r.hours || 0); byUser[r.user_id].count++; });
+      const grand = (data || []).reduce((s, r) => s + Number(r.hours || 0), 0);
+      const tot = el('div', 'hours-total'); tot.innerHTML = '급여기간 합계 <b>' + grand + '시간</b>'; wrap.appendChild(tot);
+      Object.keys(byUser).forEach(uid => {
+        const u = byUser[uid]; const r = el('div', 'ts-row'); const l = el('div');
+        const n = el('div', 'ts-row__date'); n.textContent = u.name || '(이름없음)';
+        const m = el('div', 'ts-row__meta'); m.textContent = u.total + '시간 · ' + u.count + '건';
+        l.append(n, m); r.appendChild(l); wrap.appendChild(r);
+      });
+      if (!(data || []).length) { const e = el('div', 'empty'); e.textContent = '이 기간에 기록이 없습니다.'; wrap.appendChild(e); }
+      const lbl = el('div', 'section-label'); lbl.textContent = '상세 내역'; wrap.appendChild(lbl);
+      (data || []).forEach(rr => wrap.appendChild(timesheetRow(rr, true, true)));
+    } else {
+      const lw = el('div'); wrap.appendChild(lw);
+      renderTimesheetList(lw, start, end, hoursFilter, true);
+    }
+  }
+
+  function setPayAnchor() {
+    const v = prompt('급여 기간 시작 기준일 (YYYY-MM-DD). 이 날짜부터 2주 단위로 급여기간이 나뉩니다:', payAnchor);
+    if (!v) return;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(v.trim())) { toast('YYYY-MM-DD 형식으로 입력하세요', 'err'); return; }
+    db.from('app_settings').upsert({ key: 'pay_period_anchor', value: v.trim() }, { onConflict: 'key' }).then(({ error }) => {
+      if (error) { toast('저장 실패', 'err'); return; }
+      payAnchor = v.trim(); hoursPeriodIdx = periodIndexOf(todayYMD());
+      toast('기준일이 저장되었습니다', 'ok'); renderHours();
+    });
+  }
+
+  /* ==========================================================
+     SCHEDULE (shifts)
+     ========================================================== */
+  async function loadSchedule() {
+    if (isAdmin()) await loadEmployees();
+    if (schedWeekStart === null) { const t = new Date(); t.setHours(0, 0, 0, 0); schedWeekStart = addDays(t, -t.getDay()); }
+    renderSchedule();
+  }
+
+  async function renderSchedule() {
+    const body = $('#schedBody'); body.innerHTML = '';
+    const weekEnd = addDays(schedWeekStart, 6);
+    const nav = el('div', 'period-nav');
+    const prev = el('button', 'cal__nav'); prev.type = 'button'; prev.textContent = '◀'; prev.onclick = () => { schedWeekStart = addDays(schedWeekStart, -7); renderSchedule(); };
+    const label = el('div', 'period-nav__label'); label.textContent = fmtMD(schedWeekStart) + ' ~ ' + fmtMD(weekEnd);
+    const next = el('button', 'cal__nav'); next.type = 'button'; next.textContent = '▶'; next.onclick = () => { schedWeekStart = addDays(schedWeekStart, 7); renderSchedule(); };
+    const todayBtn = el('button', 'btn btn--ghost btn--sm'); todayBtn.type = 'button'; todayBtn.textContent = '이번 주';
+    todayBtn.onclick = () => { const t = new Date(); t.setHours(0, 0, 0, 0); schedWeekStart = addDays(t, -t.getDay()); renderSchedule(); };
+    nav.append(prev, label, next, todayBtn); body.appendChild(nav);
+
+    if (isAdmin()) body.appendChild(schedAddForm());
+
+    const grid = el('div', 'week-grid'); body.appendChild(grid);
+    grid.innerHTML = '<p class="muted">불러오는 중…</p>';
+    const { data, error } = await db.from('shifts').select('*')
+      .gte('work_date', toYMD(schedWeekStart)).lte('work_date', toYMD(weekEnd))
+      .order('start_time', { ascending: true, nullsFirst: true });
+    if (error) { grid.innerHTML = '<p class="muted">불러오기 실패</p>'; return; }
+    const byDate = {}; (data || []).forEach(s => { (byDate[s.work_date] = byDate[s.work_date] || []).push(s); });
+    grid.innerHTML = '';
+    for (let i = 0; i < 7; i++) {
+      const d = addDays(schedWeekStart, i); const key = toYMD(d);
+      const col = el('div', 'week-day'); if (key === todayYMD()) col.classList.add('today');
+      const hd = el('div', 'week-day__head'); hd.innerHTML = '<span>' + WD[d.getDay()] + '</span><b>' + d.getDate() + '</b>'; col.appendChild(hd);
+      const shifts = byDate[key] || [];
+      shifts.forEach(s => col.appendChild(shiftChip(s)));
+      if (!shifts.length) { const e = el('div', 'week-day__empty'); e.textContent = '–'; col.appendChild(e); }
+      grid.appendChild(col);
+    }
+  }
+
+  function shiftChip(s) {
+    const c = el('div', 'shift' + (s.user_id === user.id ? ' shift--mine' : ''));
+    const nm = el('div', 'shift__name'); nm.textContent = s.user_name || '(직원)'; c.appendChild(nm);
+    const info = [];
+    if (s.start_time && s.end_time) info.push(s.start_time.slice(0, 5) + '~' + s.end_time.slice(0, 5));
+    if (s.location) info.push(s.location);
+    if (info.length) { const mt = el('div', 'shift__meta'); mt.textContent = info.join(' · '); c.appendChild(mt); }
+    if (s.note) { const n = el('div', 'shift__meta'); n.textContent = s.note; c.appendChild(n); }
+    if (isAdmin()) {
+      const x = el('button', 'shift__del'); x.type = 'button'; x.textContent = '×'; x.title = '삭제';
+      x.onclick = async () => { await db.from('shifts').delete().eq('id', s.id); toast('삭제됨', 'ok'); renderSchedule(); };
+      c.appendChild(x);
+    }
+    return c;
+  }
+
+  function schedAddForm() {
+    const card = el('div', 'card card--form');
+    if (!employees.length) {
+      card.innerHTML = '<h3>배정 추가</h3><p class="muted">먼저 <b>직원 계정</b> 메뉴에서 직원을 추가하세요.</p>';
+      return card;
+    }
+    card.innerHTML = `
+      <h3>배정 추가</h3>
+      <div class="form-grid">
+        <label class="field"><span>날짜</span><input type="date" id="sh_date"></label>
+        <label class="field"><span>직원</span><select id="sh_user">${employees.map(e => `<option value="${e.id}">${esc(e.full_name || '(이름없음)')}</option>`).join('')}</select></label>
+        <label class="field"><span>시작</span><input type="time" id="sh_start"></label>
+        <label class="field"><span>종료</span><input type="time" id="sh_end"></label>
+        <label class="field"><span>현장</span><input type="text" id="sh_loc" placeholder="예: Richmond"></label>
+        <label class="field"><span>메모</span><input type="text" id="sh_note"></label>
+        <button class="btn btn--gold" id="sh_save">추가</button>
+      </div>`;
+    const dateEl = card.querySelector('#sh_date'); dateEl.value = todayYMD();
+    card.querySelector('#sh_save').addEventListener('click', async () => {
+      const uid = card.querySelector('#sh_user').value; const emp = employees.find(e => e.id === uid);
+      if (!dateEl.value || !uid) { toast('날짜와 직원을 선택하세요', 'err'); return; }
+      const { error } = await db.from('shifts').insert({
+        work_date: dateEl.value, user_id: uid, user_name: emp ? emp.full_name : null,
+        start_time: card.querySelector('#sh_start').value || null, end_time: card.querySelector('#sh_end').value || null,
+        location: card.querySelector('#sh_loc').value.trim() || null, note: card.querySelector('#sh_note').value.trim() || null,
+        created_by: user.id,
+      });
+      if (error) { toast('추가 실패: ' + error.message, 'err'); return; }
+      toast('스케줄에 추가되었습니다', 'ok'); renderSchedule();
+    });
+    return card;
   }
 
   /* ==========================================================
