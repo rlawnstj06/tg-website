@@ -22,6 +22,10 @@
   let currentSiteId = null;
   let contentMap = {};
   let siteStats = {};
+  let mediaViewMode = 'list';   // 'list' | 'calendar'
+  let currentMedia = [];
+  let currentUrlByPath = {};
+  let calMonth = null;          // { y, m } (m is 0-based)
 
   // ---- tiny DOM helpers ----
   const $ = (s, r = document) => r.querySelector(s);
@@ -330,7 +334,14 @@
         </div>
         <div class="uploader__queue" id="queue"></div>
       </div>
+      <div class="media-toolbar" id="mediaToolbar" hidden>
+        <div class="viewtoggle">
+          <button type="button" class="vt is-active" id="vtList">📋 목록</button>
+          <button type="button" class="vt" id="vtCal">📅 캘린더</button>
+        </div>
+      </div>
       <div id="mediaWrap"></div>`;
+    mediaViewMode = 'list'; calMonth = null;
     $('#rh_name').textContent = site.name;
     $('#rh_meta').textContent = [site.client, site.address, site.notes].filter(Boolean).join(' · ') || '—';
     updateRecordsStat();
@@ -347,6 +358,8 @@
     drop.addEventListener('drop', e => { if (e.dataTransfer.files) handleFiles(e.dataTransfer.files); });
 
     $('#downloadAllBtn').addEventListener('click', () => downloadAllFiles(id, site.name));
+    $('#vtList').addEventListener('click', () => { mediaViewMode = 'list'; $('#vtList').classList.add('is-active'); $('#vtCal').classList.remove('is-active'); renderMediaView(); });
+    $('#vtCal').addEventListener('click', () => { mediaViewMode = 'calendar'; $('#vtCal').classList.add('is-active'); $('#vtList').classList.remove('is-active'); renderMediaView(); });
     if (isAdmin()) $('#editSiteBtn').addEventListener('click', () => editSite(site));
 
     await loadMedia(id);
@@ -471,27 +484,102 @@
     const { data, error } = await db.from('media').select('*')
       .eq('site_id', siteId).order('captured_on', { ascending: false }).order('created_at', { ascending: false });
     if (error) { wrap.innerHTML = '<p class="muted">불러오기 실패</p>'; return; }
-    if (!data.length) { wrap.innerHTML = '<div class="empty">아직 올린 파일이 없습니다.</div>'; return; }
 
-    // signed urls (batch)
-    const paths = data.map(m => m.storage_path);
-    const { data: signed } = await db.storage.from(CFG.BUCKET_MEDIA).createSignedUrls(paths, 3600);
-    const urlByPath = {};
-    (signed || []).forEach(s => { if (s.path && s.signedUrl) urlByPath[s.path] = s.signedUrl; });
+    currentMedia = data || [];
+    currentUrlByPath = {};
+    if (currentMedia.length) {
+      const paths = currentMedia.map(m => m.storage_path);
+      const { data: signed } = await db.storage.from(CFG.BUCKET_MEDIA).createSignedUrls(paths, 3600);
+      (signed || []).forEach(s => { if (s.path && s.signedUrl) currentUrlByPath[s.path] = s.signedUrl; });
+    }
+    renderMediaView();
+  }
 
-    // group by date
+  function renderMediaView() {
+    const wrap = $('#mediaWrap'); const toolbar = $('#mediaToolbar');
+    if (!wrap) return;
+    if (!currentMedia.length) {
+      if (toolbar) toolbar.hidden = true;
+      wrap.innerHTML = '<div class="empty">아직 올린 파일이 없습니다.</div>';
+      return;
+    }
+    if (toolbar) toolbar.hidden = false;
+    if (mediaViewMode === 'calendar') renderMediaCalendar(wrap);
+    else renderMediaList(wrap);
+  }
+
+  function renderMediaList(wrap) {
     const groups = {};
-    data.forEach(m => { (groups[m.captured_on] = groups[m.captured_on] || []).push(m); });
-
+    currentMedia.forEach(m => { (groups[m.captured_on] = groups[m.captured_on] || []).push(m); });
     wrap.innerHTML = '';
     Object.keys(groups).sort().reverse().forEach(date => {
       const g = document.createElement('div'); g.className = 'date-group';
       const lbl = document.createElement('div'); lbl.className = 'date-group__label';
       lbl.textContent = fmtDate(date) + '  ·  ' + groups[date].length + '개';
       const grid = document.createElement('div'); grid.className = 'media-grid';
-      groups[date].forEach(m => grid.appendChild(mediaCard(m, urlByPath[m.storage_path])));
+      groups[date].forEach(m => grid.appendChild(mediaCard(m, currentUrlByPath[m.storage_path])));
       g.append(lbl, grid); wrap.appendChild(g);
     });
+  }
+
+  function renderMediaCalendar(wrap) {
+    const byDate = {};
+    currentMedia.forEach(m => { (byDate[m.captured_on] = byDate[m.captured_on] || []).push(m); });
+    const dates = Object.keys(byDate).sort();
+    if (calMonth === null && dates.length) {
+      const parts = dates[dates.length - 1].split('-');
+      calMonth = { y: +parts[0], m: +parts[1] - 1 };
+    }
+    wrap.innerHTML = '';
+    const cal = document.createElement('div'); cal.className = 'cal';
+
+    const head = document.createElement('div'); head.className = 'cal__head';
+    const prev = document.createElement('button'); prev.type = 'button'; prev.className = 'cal__nav'; prev.textContent = '◀';
+    const title = document.createElement('div'); title.className = 'cal__title';
+    title.textContent = calMonth.y + '년 ' + (calMonth.m + 1) + '월';
+    const next = document.createElement('button'); next.type = 'button'; next.className = 'cal__nav'; next.textContent = '▶';
+    prev.onclick = () => { calMonth.m--; if (calMonth.m < 0) { calMonth.m = 11; calMonth.y--; } renderMediaCalendar(wrap); };
+    next.onclick = () => { calMonth.m++; if (calMonth.m > 11) { calMonth.m = 0; calMonth.y++; } renderMediaCalendar(wrap); };
+    head.append(prev, title, next); cal.appendChild(head);
+
+    const wk = document.createElement('div'); wk.className = 'cal__grid cal__weekdays';
+    ['일', '월', '화', '수', '목', '금', '토'].forEach(d => { const c = document.createElement('div'); c.className = 'cal__wd'; c.textContent = d; wk.appendChild(c); });
+    cal.appendChild(wk);
+
+    const grid = document.createElement('div'); grid.className = 'cal__grid';
+    const startDow = new Date(calMonth.y, calMonth.m, 1).getDay();
+    const daysInMonth = new Date(calMonth.y, calMonth.m + 1, 0).getDate();
+    for (let i = 0; i < startDow; i++) { const b = document.createElement('div'); b.className = 'cal__day cal__day--empty'; grid.appendChild(b); }
+    let firstWithMedia = null;
+    for (let day = 1; day <= daysInMonth; day++) {
+      const key = calMonth.y + '-' + String(calMonth.m + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+      const items = byDate[key];
+      const cell = document.createElement('button'); cell.type = 'button'; cell.className = 'cal__day';
+      const dn = document.createElement('span'); dn.className = 'cal__daynum'; dn.textContent = day; cell.appendChild(dn);
+      if (items) {
+        cell.classList.add('has');
+        const badge = document.createElement('span'); badge.className = 'cal__count'; badge.textContent = items.length; cell.appendChild(badge);
+        cell.onclick = () => { [...grid.querySelectorAll('.cal__day')].forEach(c => c.classList.remove('sel')); cell.classList.add('sel'); selectCalDay(key, items); };
+        if (!firstWithMedia) firstWithMedia = { key, items, cell };
+      } else { cell.disabled = true; cell.classList.add('cal__day--none'); }
+      grid.appendChild(cell);
+    }
+    cal.appendChild(grid);
+
+    const dayView = document.createElement('div'); dayView.className = 'cal__dayview'; dayView.id = 'calDay'; cal.appendChild(dayView);
+    wrap.appendChild(cal);
+
+    if (firstWithMedia) { firstWithMedia.cell.classList.add('sel'); selectCalDay(firstWithMedia.key, firstWithMedia.items); }
+    else { dayView.innerHTML = '<p class="muted" style="text-align:center;padding:24px">이 달에는 업로드가 없습니다.</p>'; }
+  }
+
+  function selectCalDay(key, items) {
+    const dv = $('#calDay'); if (!dv) return;
+    dv.innerHTML = '';
+    const h = document.createElement('div'); h.className = 'date-group__label'; h.textContent = fmtDate(key) + '  ·  ' + items.length + '개';
+    const grid = document.createElement('div'); grid.className = 'media-grid';
+    items.forEach(m => grid.appendChild(mediaCard(m, currentUrlByPath[m.storage_path])));
+    dv.append(h, grid);
   }
 
   function mediaCard(m, url) {

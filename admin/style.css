@@ -175,6 +175,33 @@ code{font-family:ui-monospace,Menlo,Consolas,monospace;background:rgba(0,0,0,.25
 .media-card:hover .media-card__del{opacity:1}
 .media-card__del:hover{background:var(--danger)}
 
+/* media view toggle */
+.media-toolbar{display:flex;justify-content:flex-end;margin:2px 0 16px}
+.viewtoggle{display:inline-flex;gap:4px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:4px}
+.vt{padding:7px 14px;border-radius:6px;color:var(--muted);font-size:.85rem;font-weight:500}
+.vt.is-active{background:var(--gold);color:#2b2118;font-weight:700}
+
+/* media calendar */
+.cal{max-width:640px;margin:0 auto}
+.cal__head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cal__title{font-family:var(--serif);font-size:1.2rem;color:var(--gold-l)}
+.cal__nav{width:38px;height:38px;border-radius:8px;border:1px solid var(--border-2);color:var(--text);font-size:1rem}
+.cal__nav:hover{border-color:var(--gold);color:var(--gold-l)}
+.cal__grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal__weekdays{margin-bottom:6px}
+.cal__wd{text-align:center;font-size:.72rem;color:var(--dim);font-weight:700;padding:4px 0}
+.cal__day{position:relative;aspect-ratio:1;border-radius:8px;border:1px solid var(--border);background:var(--bg);
+  display:flex;align-items:flex-start;justify-content:flex-start;padding:6px;color:var(--muted);font-size:.8rem}
+.cal__day--empty{border:none;background:transparent}
+.cal__day--none{opacity:.4;cursor:default}
+.cal__daynum{line-height:1}
+.cal__day.has{cursor:pointer;border-color:var(--gold-d);color:var(--text)}
+.cal__day.has:hover{background:var(--bg-3)}
+.cal__day.sel{border-color:var(--gold);background:var(--bg-3);box-shadow:inset 0 0 0 1px var(--gold)}
+.cal__count{position:absolute;bottom:5px;right:5px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;
+  background:var(--gold);color:#2b2118;font-size:.68rem;font-weight:700;display:flex;align-items:center;justify-content:center}
+.cal__dayview{margin-top:22px;border-top:1px solid var(--border);padding-top:18px}
+
 /* ============================================================ PROJECTS */
 .project-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
 .pcard{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column}

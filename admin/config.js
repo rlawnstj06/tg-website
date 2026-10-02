@@ -13,8 +13,9 @@ window.TG_CONFIG = {
 /* Curated, human-labelled website text fields (map to data-editable keys). */
 window.TG_CONTENT_FIELDS = [
   { group: '메인 · 상단 (Hero)', fields: [
-    { key: 'hero-title',   label: '큰 제목',   type: 'textarea', hint: '줄바꿈 가능' },
-    { key: 'hero-tagline', label: '슬로건',    type: 'text' },
+    { key: 'hero-title',     label: '큰 제목',   type: 'textarea', hint: '줄바꿈 가능' },
+    { key: 'hero-tagline',   label: '슬로건',    type: 'text' },
+    { key: 'projects-title', label: '"Our Projects" 배너 제목', type: 'text' },
   ]},
   { group: '메인 · 회사 소개', fields: [
     { key: 'about-title',  label: '소제목',    type: 'text' },
@@ -32,12 +33,35 @@ window.TG_CONTENT_FIELDS = [
     { key: 'team-4-name', label: '팀원 4 이름', type: 'text' },
     { key: 'team-4-role', label: '팀원 4 직책', type: 'text' },
   ]},
+  { group: '메인 · 서비스 (What We Do)', fields: [
+    { key: 'services-title', label: '섹션 제목', type: 'text' },
+    { key: 'services-intro', label: '섹션 설명', type: 'textarea' },
+    { key: 'svc-1',  label: '서비스 1 이름 (Inspection)',   type: 'text' },     { key: 'svc-1-d',  label: '서비스 1 설명',  type: 'textarea' },
+    { key: 'svc-2',  label: '서비스 2 이름 (Design)',       type: 'text' },     { key: 'svc-2-d',  label: '서비스 2 설명',  type: 'textarea' },
+    { key: 'svc-3',  label: '서비스 3 이름 (Permits)',      type: 'text' },     { key: 'svc-3-d',  label: '서비스 3 설명',  type: 'textarea' },
+    { key: 'svc-4',  label: '서비스 4 이름 (Framing)',      type: 'text' },     { key: 'svc-4-d',  label: '서비스 4 설명',  type: 'textarea' },
+    { key: 'svc-5',  label: '서비스 5 이름 (Plumbing)',     type: 'text' },     { key: 'svc-5-d',  label: '서비스 5 설명',  type: 'textarea' },
+    { key: 'svc-6',  label: '서비스 6 이름 (Electrical)',   type: 'text' },     { key: 'svc-6-d',  label: '서비스 6 설명',  type: 'textarea' },
+    { key: 'svc-7',  label: '서비스 7 이름 (Flooring)',     type: 'text' },     { key: 'svc-7-d',  label: '서비스 7 설명',  type: 'textarea' },
+    { key: 'svc-8',  label: '서비스 8 이름 (Tile)',         type: 'text' },     { key: 'svc-8-d',  label: '서비스 8 설명',  type: 'textarea' },
+    { key: 'svc-9',  label: '서비스 9 이름 (Drywall)',      type: 'text' },     { key: 'svc-9-d',  label: '서비스 9 설명',  type: 'textarea' },
+    { key: 'svc-10', label: '서비스 10 이름 (Millwork)',    type: 'text' },     { key: 'svc-10-d', label: '서비스 10 설명', type: 'textarea' },
+    { key: 'svc-11', label: '서비스 11 이름 (Cabinetry)',   type: 'text' },     { key: 'svc-11-d', label: '서비스 11 설명', type: 'textarea' },
+    { key: 'svc-12', label: '서비스 12 이름 (Painting)',    type: 'text' },     { key: 'svc-12-d', label: '서비스 12 설명', type: 'textarea' },
+    { key: 'svc-13', label: '서비스 13 이름 (Concrete)',    type: 'text' },     { key: 'svc-13-d', label: '서비스 13 설명', type: 'textarea' },
+    { key: 'svc-14', label: '서비스 14 이름 (Deck)',        type: 'text' },     { key: 'svc-14-d', label: '서비스 14 설명', type: 'textarea' },
+    { key: 'svc-15', label: '서비스 15 이름 (Exterior)',    type: 'text' },     { key: 'svc-15-d', label: '서비스 15 설명', type: 'textarea' },
+    { key: 'svc-16', label: '서비스 16 이름 (Glass)',       type: 'text' },     { key: 'svc-16-d', label: '서비스 16 설명', type: 'textarea' },
+    { key: 'svc-17', label: '서비스 17 이름 (Cleanup)',     type: 'text' },     { key: 'svc-17-d', label: '서비스 17 설명', type: 'textarea' },
+    { key: 'svc-18', label: '서비스 18 이름 (Maintenance)', type: 'text' },     { key: 'svc-18-d', label: '서비스 18 설명', type: 'textarea' },
+  ]},
   { group: '메인 · 연락 유도', fields: [
     { key: 'contact-title',    label: '제목',   type: 'text' },
     { key: 'contact-text',     label: '문구',   type: 'textarea' },
     { key: 'contact-location', label: '위치',   type: 'text' },
   ]},
   { group: '연락처 페이지', fields: [
+    { key: 'ct-label',      label: '작은 라벨', type: 'text' },
     { key: 'ct-hero-title', label: '제목',     type: 'text' },
     { key: 'ct-hero-desc',  label: '설명',     type: 'textarea' },
     { key: 'ct-address',    label: '주소',     type: 'text' },
@@ -48,6 +72,7 @@ window.TG_CONTENT_FIELDS = [
     { key: 'ct-form-desc',  label: '폼 설명',  type: 'textarea' },
   ]},
   { group: '포트폴리오 페이지', fields: [
+    { key: 'pf-label',      label: '작은 라벨', type: 'text' },
     { key: 'pf-hero-title', label: '제목',    type: 'text' },
     { key: 'pf-hero-desc',  label: '설명',    type: 'textarea' },
     { key: 'pf-cta-title',  label: 'CTA 제목', type: 'text' },
