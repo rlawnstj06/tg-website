@@ -59,7 +59,7 @@
 
       if (isPortfolio) syncPortfolio(rows, byId);
       if (isDetail) syncDetail(byId);
-    }).catch(function () {});
+    }).catch(function () { if (isDetail) showNotFound(); });
   }
 
   function syncPortfolio(rows, byId) {
@@ -112,10 +112,17 @@
     return a;
   }
 
+  function showNotFound() {
+    var el = document.querySelector('.pj-detail');
+    if (!el || el.getAttribute('data-pending') !== '1') return;
+    el.innerHTML = '<div class="container" style="padding:200px 40px 100px;text-align:center;"><h1 style="font-family:var(--font-heading);font-size:2rem;color:var(--color-white);margin-bottom:16px;">Project Not Found</h1><p style="color:var(--color-text-muted);margin-bottom:32px;">The project you\'re looking for doesn\'t exist.</p><a href="portfolio.html" class="hero__cta">Back to Portfolio</a></div>';
+  }
+
   function syncDetail(byId) {
     var params = new URLSearchParams(location.search);
     var p = byId[params.get('id')];
-    if (!p) return; // leave whatever main.js rendered
+    if (!p || p.is_published === false) { showNotFound(); return; }
+    var pd = document.querySelector('.pj-detail'); if (pd) pd.removeAttribute('data-pending');
 
     document.title = p.title + ' — TG General Contracting Ltd.';
     setText('pjTag', p.tag);

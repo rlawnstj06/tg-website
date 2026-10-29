@@ -276,8 +276,9 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
     } else {
-      // Project not found
-      projectDetail.innerHTML = '<div class="container" style="padding:200px 40px 100px;text-align:center;"><h1 style="font-family:var(--font-heading);font-size:2rem;color:var(--color-white);margin-bottom:16px;">Project Not Found</h1><p style="color:var(--color-text-muted);margin-bottom:32px;">The project you\'re looking for doesn\'t exist.</p><a href="portfolio.html" class="hero__cta">Back to Portfolio</a></div>';
+      // Not a built-in project: tg-live.js loads it from Supabase,
+      // and shows "Project Not Found" only if it isn't there either.
+      projectDetail.setAttribute('data-pending', '1');
     }
   }
 
